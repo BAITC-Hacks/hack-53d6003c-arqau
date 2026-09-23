@@ -28,6 +28,8 @@ from .models import HistoryRecord, HistoryStatus
 
 AI_SETTINGS: dict[str, float | int] = {
     "deadline_seconds": 8.0,
+    "hr_deadline_seconds": 15.0,
+    "hr_max_tokens": 700,
     "max_tool_rounds": 4,
     "max_history_messages": 10,
     "max_message_chars": 1000,
@@ -119,6 +121,7 @@ class LLMClient(Protocol):
         messages: list[dict[str, Any]],
         tools: list[dict[str, Any]] | None,
         timeout: float,
+        max_tokens: int | None = None,
     ) -> dict[str, Any]:
         """Return the assistant message dict of the first choice."""
 
@@ -139,6 +142,7 @@ class OpenAIChatClient:
         messages: list[dict[str, Any]],
         tools: list[dict[str, Any]] | None,
         timeout: float,
+        max_tokens: int | None = None,
     ) -> dict[str, Any]:
         if not self.config.api_key:
             raise LLMError("OPENAI_API_KEY is not configured")
@@ -148,6 +152,8 @@ class OpenAIChatClient:
             "temperature": AI_SETTINGS["temperature"],
             "response_format": {"type": "json_object"},
         }
+        if max_tokens:
+            body["max_completion_tokens"] = max_tokens
         if tools:
             body["tools"] = tools
             body["tool_choice"] = "auto"
@@ -321,8 +327,8 @@ class EmployeeTools:
                 {
                     "skill_id": item.skill_id,
                     "name": item.name,
-                    "assessed_level": item.assessed_level,
-                    "estimate_since_review": item.effective_level,
+                    "current_level": item.effective_level,
+                    "formal_assessed_level": item.assessed_level,
                     "target_level": item.target_level,
                     "gap": item.gap,
                     "critical": item.critical,
@@ -330,11 +336,15 @@ class EmployeeTools:
                 for item in progress.gaps
             ],
             "met_requirements": [
-                {"name": item.name, "estimate": item.effective_level, "target_level": item.target_level}
+                {"name": item.name, "current_level": item.effective_level, "target_level": item.target_level}
                 for item in progress.skills
                 if item.target_level > 0 and item.gap == 0
             ],
-            "note": "Activity gains are post-review estimates; formal levels change only at reassessment.",
+            "note": (
+                "current_level = formal assessed level + activities completed since the last review "
+                "(an estimate). Always use current_level when stating the employee's level; mention "
+                "formal_assessed_level only when explaining the difference."
+            ),
         }
 
     def get_recommendations(self, _: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -726,7 +736,7 @@ class EmployeeTemplateResponder:
                     "gap_line",
                     self.language,
                     name=g["name"],
-                    level=g["estimate_since_review"],
+                    level=g["current_level"],
                     target=g["target_level"],
                     critical=_t("critical_mark", self.language) if g["critical"] else "",
                 )
@@ -838,7 +848,7 @@ You help ONE employee understand their development. Rules:
 - Use ONLY facts returned by the tools. Call tools before answering anything about skills, readiness, activities, dates or effects.
 - Never invent activities, event IDs, levels, dates, percentages or policies. If the catalog has nothing suitable, say so plainly.
 - Recommendations come from the deterministic engine (get_recommendations). You may explain, compare or simulate them; you must not replace them with activities that tools did not return.
-- Skill gains after the last review are ESTIMATES, not certification. Formal levels change only at reassessment.
+- A skill's level is `current_level` (it already includes activities completed since the review). Quote current_level; do not present formal_assessed_level as the current level. Gains are estimates, not certification.
 - Be supportive and concise (max ~120 words). Never judge motivation, never compare with colleagues, never pressure.
 - Answer in {language}.
 Return a JSON object: {{"text": "<answer for the employee>", "event_ids": ["EV_..."]}} where event_ids lists only activities you suggest acting on (from tool results), or [] if none."""
@@ -981,7 +991,7 @@ You receive ONLY aggregated, de-identified analytics (JSON). Rules:
 - Answer in {language}.
 {shape}"""
 
-HR_INSIGHTS_SHAPE = """Return a JSON object {"insights": [ ... 3 to 5 items ... ]}. Each item:
+HR_INSIGHTS_SHAPE = """Return a JSON object {"insights": [ ... exactly 3 items, each field one short sentence ... ]}. Each item:
 {"title": str, "observation": str, "evidence": [str, ...], "we_dont_know": str, "suggested_action": str,
  "link": one of "/hr", "/hr/people", "/hr/skills", "/hr/events"}"""
 
@@ -1094,7 +1104,7 @@ class HRInsightService:
         )
 
     def _ask(self, data: dict[str, Any], language: str, shape: str, question: str, started: float) -> dict[str, Any]:
-        remaining = float(AI_SETTINGS["deadline_seconds"]) - (time.monotonic() - started)
+        remaining = float(AI_SETTINGS["hr_deadline_seconds"]) - (time.monotonic() - started)
         message = self.client.complete(
             messages=[
                 {
@@ -1106,6 +1116,7 @@ class HRInsightService:
             ],
             tools=None,
             timeout=max(remaining, 1.0),
+            max_tokens=int(AI_SETTINGS["hr_max_tokens"]),
         )
         try:
             payload = json.loads(message.get("content") or "")

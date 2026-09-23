@@ -3,6 +3,7 @@ import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react
 import { api, type ActivityDiff, type Employee, type Journey, type PickerEmployee, type Progress, type Recommendation, type Recommendations, type Session } from './api'
 import { BottomNav, BrandMark, Empty, ErrorState, Initials, Loading, Modal, ReadinessDrawer, RecommendationCard } from './components'
 import { t, type Language } from './i18n'
+import { AiSettings, CareerAIChat, HrAskAI } from './ai'
 
 const SESSION_KEY='career-quest-session'
 const readSession=():Session|null=>{ try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch{return null} }
@@ -23,16 +24,17 @@ export default function App(){
       <Route index element={<Home/>}/><Route path="growth" element={<Growth/>}/><Route path="path" element={<CareerPath/>}/><Route path="events" element={<Events/>}/><Route path="ai" element={<CareerAI/>}/>
     </Route>
     <Route path="/hr" element={!session?<Navigate to="/login" replace/>:session.role==='hr'?<HrLayout session={session} logout={()=>save(null)}/>:<Navigate to="/" replace/>}>
-      <Route index element={<HrOverview/>}/><Route path="people" element={<HrPeople/>}/><Route path="skills" element={<HrSkills/>}/><Route path="events" element={<HrEvents/>}/><Route path="import" element={<HrImport/>}/>
+      <Route index element={<HrOverview/>}/><Route path="people" element={<HrPeople/>}/><Route path="skills" element={<HrSkills/>}/><Route path="events" element={<HrEvents/>}/><Route path="import" element={<HrImport/>}/><Route path="ai" element={<HrAi/>}/>
     </Route>
     <Route path="*" element={<Navigate to={session?.role==='hr'?'/hr':'/'} replace/>}/>
   </Routes>
 }
 
 function Login({onLogin}:{onLogin:(s:Session)=>void}){
+  const navigate=useNavigate()
   const [role,setRole]=useState<'employee'|'hr'>('employee'),[items,setItems]=useState<PickerEmployee[]>([]),[search,setSearch]=useState(''),[selected,setSelected]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false)
   useEffect(()=>{api.picker(search).then(r=>{setItems(r.items);setSelected(v=>v||r.items.find(x=>x.employee_id==='E0028')?.employee_id||r.items[0]?.employee_id||'')}).catch(e=>setError(e.message))},[search])
-  const submit=async()=>{setBusy(true);setError('');try{const r=await api.login(role,role==='employee'?selected:undefined);onLogin({token:r.access_token,role:r.role,employeeId:r.employee_id})}catch(e){setError((e as Error).message)}finally{setBusy(false)}}
+  const submit=async()=>{setBusy(true);setError('');try{const r=await api.login(role,role==='employee'?selected:undefined);onLogin({token:r.access_token,role:r.role,employeeId:r.employee_id});navigate(r.role==='hr'?'/hr':'/')}catch(e){setError((e as Error).message)}finally{setBusy(false)}}
   return <main className="login-page"><section className="login-card">
     <div className="login-brand"><BrandMark/><div><b>Career Quest</b><span>Every next step, explained.</span></div></div>
     <div><span className="eyebrow">DEMO ACCESS</span><h1>Build a career path that moves with you.</h1><p>Explore skill evidence, suitable development activities and career readiness — without rankings or guesswork.</p></div>
@@ -112,10 +114,11 @@ function Events(){
   </main>{why&&<WhyModal item={why} onClose={()=>setWhy(null)}/>} {diff&&<ChangedModal diff={diff} onClose={()=>setDiff(null)} onGrowth={()=>{setDiff(null);navigate('/growth',{state:{diff}})}}/>} {decline&&<Modal title="What would fit better?" onClose={()=>setDecline(null)}><p className="muted">Saved only for this employee and used to deprioritize this option.</p><div className="reason-grid">{['timing','already know it','format','irrelevant','workload','other'].map(r=><button key={r} onClick={()=>saveDecline(r)}>{r}</button>)}</div></Modal>}</>
 }
 
-function CareerAI(){const {progress,recommendations,language}=useEmployee(),next=recommendations.recommendations[0];return <><header className="ai-header"><span>✦</span><div><h1>Career AI</h1><p>Structured from your target, skills and history</p></div><LanguageMenu/></header><main className="mobile-content ai-page"><div className="user-bubble">What should I focus on next?</div><div className="ai-bubble"><p>{next?.explanation||recommendations.summary}</p>{next&&<RecommendationCard item={next} language={language} compact onWhy={()=>{}}/>}<details><summary>Why this answer?</summary><p>Your {progress.target.grade} target, numbered gaps, activity evidence, format and effort. No private data or hidden profile is used.</p></details><div className="chip-row"><button>Open skill</button><button>Open career path</button></div></div></main></>}
+function CareerAI(){const {session,language,refresh}=useEmployee();return <CareerAIChat session={session} language={language} languageMenu={<LanguageMenu/>} onPlanChanged={()=>void refresh()}/>}
+function HrAi(){const {session}=useHr();return <AiSettings session={session}/>}
 
-function HrLayout({session,logout}:{session:Session;logout:()=>void}){return <HrContext.Provider value={{session,logout}}><div className="hr-shell"><HrSidebar/><div className="hr-main"><header className="hr-top"><div className="ai-search">✦ <span>Career AI insights arrive in Step 7</span></div><button onClick={logout}>View as: HR · Sign out</button></header><Outlet/></div></div></HrContext.Provider>}
-function HrSidebar(){const navigate=useNavigate(),location=useLocation();const links=[['/hr','Overview'],['/hr/people','People'],['/hr/skills','Skills'],['/hr/events','Events']];return <aside className="hr-sidebar"><div className="login-brand"><BrandMark/><b>Career Quest</b></div><nav>{links.map(([to,label])=><button key={to} className={location.pathname===to?'active':''} onClick={()=>navigate(to)}>{label}</button>)}</nav><button className="import-link" onClick={()=>navigate('/hr/import')}>↓ Import data</button><div className="hr-user"><span>HR</span><div><b>HR partner</b><small>Privacy-aware view</small></div></div></aside>}
+function HrLayout({session,logout}:{session:Session;logout:()=>void}){return <HrContext.Provider value={{session,logout}}><div className="hr-shell"><HrSidebar/><div className="hr-main"><header className="hr-top"><HrAskAI session={session}/><button onClick={logout}>View as: HR · Sign out</button></header><Outlet/></div></div></HrContext.Provider>}
+function HrSidebar(){const navigate=useNavigate(),location=useLocation();const links=[['/hr','Overview'],['/hr/people','People'],['/hr/skills','Skills'],['/hr/events','Events'],['/hr/ai','AI settings']];return <aside className="hr-sidebar"><div className="login-brand"><BrandMark/><b>Career Quest</b></div><nav>{links.map(([to,label])=><button key={to} className={location.pathname===to?'active':''} onClick={()=>navigate(to)}>{label}</button>)}</nav><button className="import-link" onClick={()=>navigate('/hr/import')}>↓ Import data</button><div className="hr-user"><span>HR</span><div><b>HR partner</b><small>Privacy-aware view</small></div></div></aside>}
 function useHrData<T>(path:string){const {session}=useHr(),[data,setData]=useState<T>(),[error,setError]=useState('');const load=useCallback(()=>api.hr<T>(path,session.token).then(setData).catch(e=>setError(e.message)),[path,session.token]);useEffect(()=>{void load()},[load]);return {data,error,load}}
 function HrPage({title,children}:{title:string;children:React.ReactNode}){return <main className="hr-content"><div className="hr-heading"><div><span className="eyebrow">LIVE DATASET</span><h1>{title}</h1></div><span className="snapshot">Snapshot-backed · refreshes after every import</span></div>{children}</main>}
 

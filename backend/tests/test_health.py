@@ -6,6 +6,11 @@ from app.main import configured_data_dir, create_app
 DATA_DIR = configured_data_dir()
 
 
+def authorize_hr(client: TestClient) -> None:
+    token = client.post("/auth/demo-login", json={"role": "hr"}).json()["access_token"]
+    client.headers["Authorization"] = f"Bearer {token}"
+
+
 def test_health_reports_loaded_dataset() -> None:
     with TestClient(create_app(DATA_DIR)) as client:
         response = client.get("/health")
@@ -20,6 +25,7 @@ def test_health_reports_loaded_dataset() -> None:
 
 def test_employee_progress_endpoint_supports_arbitrary_employee() -> None:
     with TestClient(create_app(DATA_DIR)) as client:
+        authorize_hr(client)
         response = client.get("/employees/E0028/progress")
 
     assert response.status_code == 200
@@ -32,6 +38,7 @@ def test_employee_progress_endpoint_supports_arbitrary_employee() -> None:
 
 def test_unknown_employee_returns_404() -> None:
     with TestClient(create_app(DATA_DIR)) as client:
+        authorize_hr(client)
         response = client.get("/employees/E9999/progress")
 
     assert response.status_code == 404

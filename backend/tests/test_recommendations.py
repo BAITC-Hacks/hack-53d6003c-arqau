@@ -17,6 +17,11 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SOURCE_DATA = PROJECT_ROOT / "dataset"
 
 
+def authorize_hr(client: TestClient) -> None:
+    token = client.post("/auth/demo-login", json={"role": "hr"}).json()["access_token"]
+    client.headers["Authorization"] = f"Bearer {token}"
+
+
 def copy_dataset(tmp_path: Path, name: str = "data") -> Path:
     destination = tmp_path / name
     shutil.copytree(SOURCE_DATA, destination)
@@ -427,6 +432,7 @@ def test_self_paced_next_session_and_required_due_date_keep_nulls(tmp_path: Path
     append_employee(data_dir, "T_NULL_FIELDS")
 
     with TestClient(create_app(data_dir)) as client:
+        authorize_hr(client)
         response = client.get("/employees/T_NULL_FIELDS/recommendations")
         real_response = client.get("/employees/E0028/recommendations")
 
@@ -473,6 +479,7 @@ def test_all_official_employees_return_zero_to_three_recommendations() -> None:
 
 def test_recommendations_api_and_debug_visibility() -> None:
     with TestClient(create_app(SOURCE_DATA)) as client:
+        authorize_hr(client)
         regular = client.get("/employees/E0028/recommendations")
         debug = client.get("/employees/E0028/recommendations?debug=true")
         missing = client.get("/employees/E9999/recommendations")

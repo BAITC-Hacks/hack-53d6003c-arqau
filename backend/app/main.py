@@ -3,13 +3,21 @@ from __future__ import annotations
 import json
 import logging
 import os
+import secrets
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 
+from .auth import (
+    AuthError,
+    AuthPrincipal,
+    AuthService,
+    DemoLoginRequest,
+    TokenResponse,
+)
 from .data_store import (
     ActivityUpdate,
     ActivityUpdateResult,
@@ -41,8 +49,64 @@ def configured_extra_data_dir() -> Path | None:
     return Path(configured) if configured else None
 
 
+def configured_secret() -> str:
+    """Use a stable configured secret, or an ephemeral secret for this process."""
+    return os.getenv("CAREER_QUEST_SECRET") or secrets.token_urlsafe(32)
+
+
 def store_from(request: Request) -> DataStore:
     return request.app.state.store
+
+
+def auth_from(request: Request) -> AuthService:
+    return request.app.state.auth
+
+
+def authenticated_principal(
+    request: Request,
+    authorization: Annotated[str | None, Header()] = None,
+) -> AuthPrincipal:
+    if not authorization:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication required. Use a Bearer token from /auth/demo-login.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    scheme, separator, token = authorization.partition(" ")
+    if not separator or scheme.lower() != "bearer" or not token:
+        raise HTTPException(
+            status_code=401,
+            detail="Authorization must use a Bearer token.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    try:
+        return auth_from(request).verify(token)
+    except AuthError as exc:
+        raise HTTPException(
+            status_code=401,
+            detail=str(exc),
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from exc
+
+
+def hr_principal(
+    principal: Annotated[AuthPrincipal, Depends(authenticated_principal)],
+) -> AuthPrincipal:
+    if principal.role != "hr":
+        raise HTTPException(status_code=403, detail="HR access is required for this endpoint.")
+    return principal
+
+
+def profile_principal(
+    employee_id: str,
+    principal: Annotated[AuthPrincipal, Depends(authenticated_principal)],
+) -> AuthPrincipal:
+    if principal.role == "hr" or principal.employee_id == employee_id:
+        return principal
+    raise HTTPException(
+        status_code=403,
+        detail="You may access only your own employee profile.",
+    )
 
 
 async def parse_import_request(request: Request) -> dict[str, object]:
@@ -97,6 +161,7 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         app.state.store = DataStore(source_dir, configured_extra_data_dir())
+        app.state.auth = AuthService(configured_secret())
         for warning in app.state.store.dataset.warnings:
             logger.warning("Dataset warning: %s", warning)
         yield
@@ -124,9 +189,57 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
             },
         }
 
+    @application.post("/auth/demo-login", tags=["auth"], response_model=TokenResponse)
+    def demo_login(credentials: DemoLoginRequest, request: Request) -> TokenResponse:
+        if credentials.employee_id is not None:
+            if credentials.employee_id not in store_from(request).dataset.indexes.employees_by_id:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Employee {credentials.employee_id} not found",
+                )
+        principal = AuthPrincipal(
+            role=credentials.role,
+            employee_id=credentials.employee_id,
+        )
+        return TokenResponse(
+            access_token=auth_from(request).issue(principal),
+            role=principal.role,
+            employee_id=principal.employee_id,
+        )
+
+    @application.get("/auth/demo-employees", tags=["auth"])
+    def demo_employee_picker(
+        request: Request,
+        search: str | None = Query(default=None),
+        limit: int = Query(default=200, ge=1, le=500),
+    ) -> dict[str, object]:
+        """Synthetic demo identities for the login picker, including runtime imports."""
+        employees = store_from(request).dataset.employees.employees
+        if search:
+            needle = search.casefold()
+            employees = [
+                employee
+                for employee in employees
+                if needle in employee.employee_id.casefold()
+                or needle in employee.full_name.casefold()
+            ]
+        return {
+            "total": len(employees),
+            "items": [
+                {
+                    "employee_id": employee.employee_id,
+                    "full_name": employee.full_name,
+                    "role": employee.role,
+                    "grade": employee.grade,
+                }
+                for employee in employees[:limit]
+            ],
+        }
+
     @application.get("/employees", tags=["employees"])
     def list_employees(
         request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
         limit: int = Query(default=50, ge=1, le=200),
         offset: int = Query(default=0, ge=0),
     ) -> dict[str, object]:
@@ -150,7 +263,11 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
         }
 
     @application.get("/employees/{employee_id}", tags=["employees"])
-    def employee_profile(employee_id: str, request: Request) -> dict[str, object]:
+    def employee_profile(
+        employee_id: str,
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(profile_principal)],
+    ) -> dict[str, object]:
         store = store_from(request)
         dataset = store.dataset
         employee = dataset.indexes.employees_by_id.get(employee_id)
@@ -168,7 +285,11 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
         }
 
     @application.get("/employees/{employee_id}/progress", tags=["employees"])
-    def employee_progress(employee_id: str, request: Request) -> dict[str, object]:
+    def employee_progress(
+        employee_id: str,
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(profile_principal)],
+    ) -> dict[str, object]:
         store = store_from(request)
         dataset = store.dataset
         if employee_id not in dataset.indexes.employees_by_id:
@@ -184,6 +305,7 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
     def employee_recommendations(
         employee_id: str,
         request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(profile_principal)],
         debug: bool = Query(default=False),
     ) -> EmployeeRecommendations:
         store = store_from(request)
@@ -207,6 +329,7 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
     @application.post("/import", tags=["runtime"], response_model=ImportReport)
     async def import_dataset(
         request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
         mode: Literal["add", "upsert"] = Query(default="add"),
     ) -> ImportReport | JSONResponse:
         return await run_import(request, mode, False)
@@ -214,6 +337,7 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
     @application.post("/import/dry-run", tags=["runtime"], response_model=ImportReport)
     async def dry_run_import(
         request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
         mode: Literal["add", "upsert"] = Query(default="add"),
     ) -> ImportReport | JSONResponse:
         return await run_import(request, mode, True)
@@ -228,19 +352,44 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
         employee_id: str,
         update: ActivityUpdate,
         request: Request,
+        principal: Annotated[AuthPrincipal, Depends(profile_principal)],
     ) -> ActivityUpdateResult:
+        if principal.role in {"employee", "manager"} and update.source != "self_report":
+            raise HTTPException(
+                status_code=403,
+                detail="Employees may record only self-reported activities.",
+            )
+        if principal.role == "hr" and update.source == "self_report":
+            raise HTTPException(
+                status_code=403,
+                detail="HR may not submit an activity as an employee self-report.",
+            )
         try:
             return store_from(request).record_activity(employee_id, update)
         except DataStoreError as exc:
             raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
 
     @application.post("/admin/reset", tags=["runtime"])
-    def reset_runtime(request: Request) -> dict[str, object]:
+    def reset_runtime(
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+    ) -> dict[str, object]:
         return {"status": "reset", "counts": store_from(request).reset()}
+
+    @application.get("/hr/status", tags=["hr"])
+    def hr_status(
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+    ) -> dict[str, object]:
+        return {
+            "status": "ok",
+            "employees": store_from(request).dataset.counts["employees"],
+        }
 
     @application.get("/career/requirements", tags=["career"])
     def career_requirements(
         request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(authenticated_principal)],
         role: str = Query(min_length=1),
         grade: Grade = Query(),
     ) -> dict[str, object]:

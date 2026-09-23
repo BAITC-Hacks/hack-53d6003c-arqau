@@ -60,3 +60,18 @@ export const api = {
   hrPost: <T,>(path:string, body:unknown, token:string) => request<T>(`/hr/${path}`, {method:'POST',body:JSON.stringify(body)}, token),
   importData: (files:File[], dryRun:boolean, token:string) => { const form=new FormData(); files.forEach(file=>form.append('files',file)); return request<{added_employees:string[];added_history:string[];warnings:string[];errors:Array<{file:string;row?:number;id?:string;message:string}>}>(`/import${dryRun?'/dry-run':''}`,{method:'POST',body:form},token) },
 }
+
+export interface AiStatus { configured:boolean; model:string; source:'env'|'runtime'|'none'; key_hint:string|null }
+export interface AiAction { type:'add_to_plan'|'open_event'; event_id:string; title:string }
+export interface AiAnswer { text:string; actions:AiAction[]; sources:Array<{tool:string;summary:string}>; mode:'llm'|'template'; model:string|null; fallback_reason:string|null; latency_ms:number }
+export interface HrInsight { title:string; observation:string; evidence:string[]; we_dont_know:string; suggested_action:string; link:string }
+export interface ChatTurn { role:'user'|'assistant'; content:string }
+
+export const aiApi = {
+  status: (token:string) => request<AiStatus>('/ai/status', {}, token),
+  setKey: (apiKey:string, model:string, token:string) => request<AiStatus>('/ai/config', {method:'POST', body:JSON.stringify({api_key:apiKey, model:model||null})}, token),
+  clearKey: (token:string) => request<AiStatus>('/ai/config', {method:'DELETE'}, token),
+  chat: (message:string, history:ChatTurn[], language:string, token:string) => request<AiAnswer>('/ai/employee/chat', {method:'POST', body:JSON.stringify({message, history, language})}, token),
+  hrQuery: (question:string, language:string, token:string) => request<AiAnswer>('/ai/hr/query', {method:'POST', body:JSON.stringify({question, language})}, token),
+  hrInsights: (language:string, token:string) => request<{insights:HrInsight[];mode:'llm'|'template';model:string|null;fallback_reason:string|null;latency_ms:number}>(`/ai/hr/insights?language=${language}`, {method:'POST'}, token),
+}

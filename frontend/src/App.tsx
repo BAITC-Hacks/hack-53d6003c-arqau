@@ -3,6 +3,7 @@ import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react
 import { api, type ActivityDiff, type Employee, type Journey, type PickerEmployee, type Progress, type Recommendation, type Recommendations, type Session } from './api'
 import { BottomNav, BrandMark, Empty, ErrorState, Initials, Loading, Modal, ReadinessDrawer, RecommendationCard } from './components'
 import { localizeLabel, t, type Language } from './i18n'
+import { AiSettings, CareerAIChat, HrAskAI } from './ai'
 
 const SESSION_KEY='career-quest-session'
 const readSession=():Session|null=>{ try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch{return null} }
@@ -23,7 +24,7 @@ export default function App(){
       <Route index element={<Home/>}/><Route path="growth" element={<Growth/>}/><Route path="path" element={<CareerPath/>}/><Route path="events" element={<Events/>}/><Route path="ai" element={<CareerAI/>}/>
     </Route>
     <Route path="/hr" element={!session?<Navigate to="/login" replace/>:session.role==='hr'?<HrLayout session={session} logout={()=>save(null)}/>:<Navigate to="/" replace/>}>
-      <Route index element={<HrOverview/>}/><Route path="people" element={<HrPeople/>}/><Route path="skills" element={<HrSkills/>}/><Route path="events" element={<HrEvents/>}/><Route path="import" element={<HrImport/>}/>
+      <Route index element={<HrOverview/>}/><Route path="people" element={<HrPeople/>}/><Route path="skills" element={<HrSkills/>}/><Route path="events" element={<HrEvents/>}/><Route path="import" element={<HrImport/>}/><Route path="ai" element={<HrAi/>}/>
     </Route>
     <Route path="*" element={<Navigate to={session?.role==='hr'?'/hr':'/'} replace/>}/>
   </Routes>
@@ -115,10 +116,11 @@ function Events(){
   </main>{why&&<WhyModal item={why} language={language} onClose={()=>setWhy(null)}/>} {diff&&<ChangedModal diff={diff} language={language} onClose={()=>setDiff(null)} onGrowth={()=>{setDiff(null);navigate('/growth',{state:{diff}})}}/>} {decline&&<Modal title={t(language,'notForMe')} onClose={()=>setDecline(null)}><div className="reason-grid">{['timing','already know it','format','irrelevant','workload','other'].map(r=><button key={r} onClick={()=>saveDecline(r)}>{localizeLabel(language,r)}</button>)}</div></Modal>}</>
 }
 
-function CareerAI(){const {recommendations,language}=useEmployee(),next=recommendations.recommendations[0],navigate=useNavigate();const [why,setWhy]=useState(false);return <><header className="ai-header"><span>✦</span><div><h1>Career AI</h1><p>{t(language,'aiSubtitle')}</p></div><LanguageMenu/></header><main className="mobile-content ai-page"><div className="user-bubble">{t(language,'aiQuestion')}</div><div className="ai-bubble"><p>{next?.explanation||recommendations.summary}</p>{next&&<RecommendationCard item={next} language={language} compact onWhy={()=>setWhy(true)}/>}<details><summary>{t(language,'whyAnswer')}</summary><p>{t(language,'whyAnswerDetail')}</p></details><div className="chip-row"><button onClick={()=>navigate('/growth')}>{t(language,'openSkill')}</button><button onClick={()=>navigate('/path')}>{t(language,'openPath')}</button></div></div></main>{why&&next&&<WhyModal item={next} language={language} onClose={()=>setWhy(false)}/>}</>}
+function CareerAI(){const {session,language,refresh}=useEmployee();return <CareerAIChat session={session} language={language} languageMenu={<LanguageMenu/>} onPlanChanged={()=>void refresh()}/>}
+function HrAi(){const {session}=useHr();return <AiSettings session={session}/>}
 
-function HrLayout({session,logout}:{session:Session;logout:()=>void}){return <HrContext.Provider value={{session,logout}}><div className="hr-shell"><HrSidebar/><div className="hr-main"><header className="hr-top"><div className="ai-search">✦ <span>Career AI insights arrive in Step 7</span></div><button onClick={logout}>View as: HR · Sign out</button></header><Outlet/></div></div></HrContext.Provider>}
-function HrSidebar(){const navigate=useNavigate(),location=useLocation();const links=[['/hr','Overview'],['/hr/people','People'],['/hr/skills','Skills'],['/hr/events','Events']];return <aside className="hr-sidebar"><div className="login-brand"><BrandMark/><b>Career Quest</b></div><nav>{links.map(([to,label])=><button key={to} className={location.pathname===to?'active':''} onClick={()=>navigate(to)}>{label}</button>)}</nav><button className="import-link" onClick={()=>navigate('/hr/import')}>↓ Import data</button><div className="hr-user"><span>HR</span><div><b>HR partner</b><small>Privacy-aware view</small></div></div></aside>}
+function HrLayout({session,logout}:{session:Session;logout:()=>void}){return <HrContext.Provider value={{session,logout}}><div className="hr-shell"><HrSidebar/><div className="hr-main"><header className="hr-top"><HrAskAI session={session}/><button onClick={logout}>View as: HR · Sign out</button></header><Outlet/></div></div></HrContext.Provider>}
+function HrSidebar(){const navigate=useNavigate(),location=useLocation();const links=[['/hr','Overview'],['/hr/people','People'],['/hr/skills','Skills'],['/hr/events','Events'],['/hr/ai','AI settings']];return <aside className="hr-sidebar"><div className="login-brand"><BrandMark/><b>Career Quest</b></div><nav>{links.map(([to,label])=><button key={to} className={location.pathname===to?'active':''} onClick={()=>navigate(to)}>{label}</button>)}</nav><button className="import-link" onClick={()=>navigate('/hr/import')}>↓ Import data</button><div className="hr-user"><span>HR</span><div><b>HR partner</b><small>Privacy-aware view</small></div></div></aside>}
 function useHrData<T>(path:string){const {session}=useHr(),[data,setData]=useState<T>(),[error,setError]=useState('');const load=useCallback(()=>api.hr<T>(path,session.token).then(setData).catch(e=>setError(e.message)),[path,session.token]);useEffect(()=>{void load()},[load]);return {data,error,load}}
 function HrPage({title,children}:{title:string;children:React.ReactNode}){return <main className="hr-content"><div className="hr-heading"><div><span className="eyebrow">LIVE DATASET</span><h1>{title}</h1></div><span className="snapshot">Snapshot-backed · refreshes after every import</span></div>{children}</main>}
 

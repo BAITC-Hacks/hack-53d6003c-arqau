@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HR Events</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#122033;background:#F2F6F8}
+a{color:#0B5F8A;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 1280px; height: 900px; box-sizing: border-box; background: #F2F6F8; display: flex;">
+<aside style="width: 232px; flex-shrink: 0; background: #FFFFFF; border-right: 1px solid #E1E8EE; box-sizing: border-box; padding: 24px 16px; display: flex; flex-direction: column; gap: 4px;">
+<div style="display: flex; align-items: center; gap: 10px; padding: 0 8px 24px;">
+<svg width="24" height="24" viewBox="0 0 22 22" fill="none" stroke="#0A6F8F" stroke-width="1.6"><path d="M11 2 L19 6.5 V15.5 L11 20 L3 15.5 V6.5 Z"></path><circle cx="11" cy="11" r="2.2" fill="#F1A400" stroke="none"></circle></svg>
+<span style="font-size: 16px; font-weight: 700;">Career Quest</span>
+</div>
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="5">
+<a href="{{n.href}}" style="{{n.style}}">{{n.label}}</a>
+</sc-for>
+<div style="flex-grow: 1;"></div>
+<a href="W-HR-Import.dc.html" style="height: 40px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; font-size: 14px; color: #5A6B7D;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2 V10 M4.5 6.5 L8 10 L11.5 6.5 M2 13 H14"></path></svg>Import data</a>
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px; border-top: 1px solid #EEF3F6; margin-top: 8px;">
+<span style="width: 32px; height: 32px; border-radius: 50%; background: #E7F2F5; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #0A5C75;">DS</span>
+<div style="display: flex; flex-direction: column;"><span style="font-size: 13px; font-weight: 600;">Dana S.</span><span style="font-size: 12px; color: #5A6B7D;">HR Business Partner</span></div>
+</div>
+</aside>
+
+<div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+<header style="height: 64px; box-sizing: border-box; padding: 0 32px; display: flex; align-items: center; gap: 16px; background: #FFFFFF; border-bottom: 1px solid #E1E8EE;">
+<label style="width: 420px; height: 40px; box-sizing: border-box; border-radius: 12px; background: #F4F2FC; border: 1px solid #DEDAF3; padding: 0 12px; display: flex; align-items: center; gap: 8px;">
+<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#5B4DB3" stroke-width="1.6"><path d="M10 2v4M10 14v4M2 10h4M14 10h4"></path><circle cx="10" cy="10" r="1.8" fill="#5B4DB3"></circle></svg>
+<input placeholder="Ask AI: why is Communication lagging in IT?" style="flex-grow: 1; border: none; outline: none; background: transparent; font-family: inherit; font-size: 14px;">
+</label>
+<div style="flex-grow: 1;"></div>
+<button style="height: 36px; padding: 0 12px; border: 1px solid #E1E8EE; border-radius: 10px; background: #FFFFFF; font-size: 13px; color: #5A6B7D;">View as: HR ▾</button>
+</header>
+
+<main style="flex-grow: 1; box-sizing: border-box; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 18px;">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em;">Events</h1>
+<div style="display: flex; gap: 8px; align-items: center;">
+<span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; background: #EEF3F6; color: #5A6B7D;">Sample data</span>
+<button style="height: 36px; padding: 0 12px; border: 1px solid #E1E8EE; border-radius: 10px; background: #FFFFFF; font-size: 13px;">Last 3 months ▾</button>
+</div>
+</div>
+<div style="display: flex; gap: 16px; flex-grow: 1;">
+<div style="width: 330px; flex-shrink: 0; background: #FFFFFF; border: 1px solid #E1E8EE; border-radius: 16px; padding: 8px; display: flex; flex-direction: column; gap: 2px;">
+<sc-for list="{{events}}" as="e" hint-placeholder-count="5">
+<button onClick="{{e.pick}}" style="{{e.row}}">
+<span style="display: flex; justify-content: space-between; width: 100%;"><span style="font-size: 14px; font-weight: 600; color: #122033; text-align: left;">{{e.name}}</span><span style="font-size: 12px; color: #5A6B7D;">{{e.date}}</span></span>
+<span style="font-size: 12px; color: #5A6B7D; text-align: left;">{{e.format}}</span>
+<span style="display: flex; align-items: center; gap: 8px; width: 100%;"><span style="flex-grow: 1; height: 6px; border-radius: 3px; background: #EEF3F6;"><span style="{{e.bar}}"></span></span><span style="font-size: 12px; color: #3E4E5E; width: 84px; text-align: right;">{{e.rate}} verified</span></span>
+</button>
+</sc-for>
+</div>
+
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0;">
+<div style="background: #FFFFFF; border: 1px solid #E1E8EE; border-radius: 16px; padding: 20px 22px; display: flex; flex-direction: column; gap: 16px;">
+<div style="display: flex; justify-content: space-between; align-items: flex-start;">
+<div style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 20px; font-weight: 600; letter-spacing: -0.01em;">{{s.name}}</span><span style="font-size: 13px; color: #5A6B7D;">{{s.format}} · {{s.date}} · develops {{s.skill}}</span></div>
+<span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: #F2F6F8; color: #3E4E5E;">Audience: {{s.audience}}</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;">
+<sc-for list="{{s.funnel}}" as="f" hint-placeholder-count="4">
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<div style="height: 120px; display: flex; align-items: flex-end; border-radius: 10px; background: #F7F9FA;"><div style="{{f.bar}}"></div></div>
+<span style="font-size: 22px; font-weight: 600; letter-spacing: -0.02em;">{{f.n}}</span>
+<span style="font-size: 12px; color: #5A6B7D; line-height: 1.35;">{{f.label}}</span>
+</div>
+</sc-for>
+</div>
+<span style="font-size: 12px; color: #5A6B7D; padding-top: 12px; border-top: 1px solid #EEF3F6;">Attendance is evidence of participation, not mastery. "Development progress" counts only skills confirmed at the next assessment.</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;">
+<div style="background: #FFFFFF; border: 1px solid #E1E8EE; border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 12px; color: #5A6B7D;">No-show</span><span style="font-size: 24px; font-weight: 600;">{{s.noshow}}</span><span style="font-size: 12px; color: #5A6B7D;">registered, not verified</span></div>
+<div style="background: #FFFFFF; border: 1px solid #E1E8EE; border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 12px; color: #5A6B7D;">Declined invitations</span><span style="font-size: 24px; font-weight: 600;">{{s.declined}}</span><span style="font-size: 12px; color: #5A6B7D;">before the event</span></div>
+<div style="background: #FFFFFF; border: 1px solid #E1E8EE; border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 12px; color: #5A6B7D;">Feedback</span><span style="font-size: 24px; font-weight: 600;">{{s.feedback}}</span><span style="font-size: 12px; color: #5A6B7D;">average of those who attended</span></div>
+</div>
+<div style="background: #F7F6FC; border: 1px solid #DEDAF3; border-radius: 16px; padding: 16px 18px; display: flex; gap: 12px; align-items: flex-start;">
+<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#5B4DB3" stroke-width="1.6" style="flex-shrink: 0; margin-top: 2px;"><path d="M10 2v4M10 14v4M2 10h4M14 10h4"></path><circle cx="10" cy="10" r="1.8" fill="#5B4DB3"></circle></svg>
+<span style="font-size: 14px; line-height: 1.5;">{{s.insight}}</span>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+navFor(active) {
+const items = [['Overview', 'W-HR-Overview.dc.html'], ['People', 'W-HR-People.dc.html'], ['Skills', 'W-HR-Skills.dc.html'], ['Events', 'W-HR-Events.dc.html'], ['Career Pipeline', '#']];
+return items.map(([label, href]) => ({ label, href, style: 'height: 40px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; font-size: 14px; ' + (label === active ? 'background: #E7F2F5; color: #0A5C75; font-weight: 600;' : 'color: #3E4E5E;') }));
+}
+constructor(p) { super(p); this.state = { sel: 0 }; }
+renderVals() {
+const nav = this.navFor('Events');
+const E = [
+{ name: 'Communication Masterclass', date: 'Sep 10', format: 'Large-format · 120 seats · Offline', skill: 'Communication', audience: 'Middle, all depts', f: [120, 54, 51, 19], noshow: '66', declined: '14', feedback: '4.1 / 5',
+  insight: 'High registration, low verified attendance. The IT Middle cohort registered most and verified least. The same cohort verified at 88% in small-group sessions: a pattern worth testing, not a conclusion.' },
+{ name: 'Presentation Clinic', date: 'Sep 18', format: 'Small group · 24 seats · Offline', skill: 'Communication', audience: 'Middle', f: [24, 21, 21, 12], noshow: '3', declined: '2', feedback: '4.7 / 5',
+  insight: 'Small format, strong completion. Running it twice a month would cover about half of the IT Middle Communication gap by Q1.' },
+{ name: 'System Design Case Lab', date: 'Sep 28', format: 'Workshop · 30 seats · Offline', skill: 'System Design', audience: 'Middle, IT', f: [30, 27, 27, 0], noshow: '3', declined: '1', feedback: '4.6 / 5',
+  insight: 'Too recent for development evidence: progress is confirmed at the next assessment cycle.' },
+{ name: 'Leadership Foundations', date: 'Aug 22', format: 'Cohort · 20 seats · Hybrid', skill: 'Leadership', audience: 'Middle', f: [20, 19, 18, 9], noshow: '1', declined: '0', feedback: '4.5 / 5',
+  insight: 'Fully booked within a day, with 83 people on the waitlist. The limit is supply, not interest.' },
+{ name: 'Cloud Architecture Day', date: 'Jul 30', format: 'Conference · 200 seats · Offline', skill: 'System Design', audience: 'All', f: [180, 112, 98, 14], noshow: '68', declined: '9', feedback: '3.9 / 5',
+  insight: 'Broad audience; few attendees had System Design as a target skill, so development impact is low by design.' }
+];
+const sel = this.state.sel;
+const events = E.map((e, i) => { const r = Math.round(e.f[1] / e.f[0] * 100); return {
+  name: e.name, date: e.date, format: e.format, rate: r + '%',
+  pick: () => this.setState({ sel: i }),
+  row: 'display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 12px; border: none; width: 100%; background: ' + (i === sel ? '#E7F2F5' : 'transparent') + ';',
+  bar: 'display: block; height: 6px; border-radius: 3px; background: ' + (r >= 75 ? '#00815F' : '#9CC6D3') + '; width: ' + r + '%;' }; });
+const e = E[sel];
+const labels = ['Registered', 'QR verified', 'Completed', 'Development progress'];
+const colors = ['#C9DCE4', '#7FB3C4', '#0A6F8F', '#00815F'];
+const funnel = e.f.map((n, i) => ({ n: String(n), label: labels[i], bar: 'width: 100%; border-radius: 10px; background: ' + colors[i] + '; height: ' + Math.max(2, Math.round(n / e.f[0] * 100)) + '%;' }));
+return { nav, events, s: Object.assign({}, e, { funnel }) };
+}
+}
+</script>
+</body>
+</html>

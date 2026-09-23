@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HR Skills</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#122033;background:#F2F6F8}
+a{color:#0B5F8A;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 1280px; height: 900px; box-sizing: border-box; background: #F2F6F8; display: flex;">
+<aside style="width: 232px; flex-shrink: 0; background: #FFFFFF; border-right: 1px solid #E1E8EE; box-sizing: border-box; padding: 24px 16px; display: flex; flex-direction: column; gap: 4px;">
+<div style="display: flex; align-items: center; gap: 10px; padding: 0 8px 24px;">
+<svg width="24" height="24" viewBox="0 0 22 22" fill="none" stroke="#0A6F8F" stroke-width="1.6"><path d="M11 2 L19 6.5 V15.5 L11 20 L3 15.5 V6.5 Z"></path><circle cx="11" cy="11" r="2.2" fill="#F1A400" stroke="none"></circle></svg>
+<span style="font-size: 16px; font-weight: 700;">Career Quest</span>
+</div>
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="5">
+<a href="{{n.href}}" style="{{n.style}}">{{n.label}}</a>
+</sc-for>
+<div style="flex-grow: 1;"></div>
+<a href="W-HR-Import.dc.html" style="height: 40px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; font-size: 14px; color: #5A6B7D;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2 V10 M4.5 6.5 L8 10 L11.5 6.5 M2 13 H14"></path></svg>Import data</a>
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px; border-top: 1px solid #EEF3F6; margin-top: 8px;">
+<span style="width: 32px; height: 32px; border-radius: 50%; background: #E7F2F5; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #0A5C75;">DS</span>
+<div style="display: flex; flex-direction: column;"><span style="font-size: 13px; font-weight: 600;">Dana S.</span><span style="font-size: 12px; color: #5A6B7D;">HR Business Partner</span></div>
+</div>
+</aside>
+
+<div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+<header style="height: 64px; box-sizing: border-box; padding: 0 32px; display: flex; align-items: center; gap: 16px; background: #FFFFFF; border-bottom: 1px solid #E1E8EE;">
+<label style="width: 420px; height: 40px; box-sizing: border-box; border-radius: 12px; background: #F4F2FC; border: 1px solid #DEDAF3; padding: 0 12px; display: flex; align-items: center; gap: 8px;">
+<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#5B4DB3" stroke-width="1.6"><path d="M10 2v4M10 14v4M2 10h4M14 10h4"></path><circle cx="10" cy="10" r="1.8" fill="#5B4DB3"></circle></svg>
+<input placeholder="Ask AI: why is Communication lagging in IT?" style="flex-grow: 1; border: none; outline: none; background: transparent; font-family: inherit; font-size: 14px;">
+</label>
+<div style="flex-grow: 1;"></div>
+<button style="height: 36px; padding: 0 12px; border: 1px solid #E1E8EE; border-radius: 10px; background: #FFFFFF; font-size: 13px; color: #5A6B7D;">View as: HR ▾</button>
+</header>
+
+<main style="flex-grow: 1; box-sizing: border-box; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 18px;">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em;">Skills</h1>
+<div style="display: flex; gap: 8px; align-items: center;">
+<span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; background: #EEF3F6; color: #5A6B7D;">Sample data</span>
+<button style="height: 36px; padding: 0 12px; border: 1px solid #E1E8EE; border-radius: 10px; background: #FFFFFF; font-size: 13px;">Company ▾</button>
+<button style="height: 36px; padding: 0 12px; border: 1px solid #E1E8EE; border-radius: 10px; background: #FFFFFF; font-size: 13px;">All departments ▾</button>
+<button style="height: 36px; padding: 0 12px; border: 1px solid #E1E8EE; border-radius: 10px; background: #FFFFFF; font-size: 13px;">Middle ▾</button>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; flex-grow: 1;">
+<div style="grid-column: span 5; background: #FFFFFF; border: 1px solid #E1E8EE; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px;">
+<span style="font-size: 15px; font-weight: 600;">Organisational Growth Web</span>
+<svg width="340" height="290" viewBox="-10 0 340 290" fill="none" aria-label="Organisation average versus required level">
+<polygon points="160.0,35.0 259.6,92.5 259.6,207.5 160.0,265.0 60.4,207.5 60.4,92.5" stroke="#E1E8EE"></polygon>
+<polygon points="160.0,81.0 219.8,115.5 219.8,184.5 160.0,219.0 100.2,184.5 100.2,115.5" stroke="#EEF3F6"></polygon>
+<polygon points="160.0,127.0 179.9,138.5 179.9,161.5 160.0,173.0 140.1,161.5 140.1,138.5" stroke="#EEF3F6"></polygon>
+<path d="M160 150 L160 35 M160 150 L259.6 92.5 M160 150 L259.6 207.5 M160 150 L160 265 M160 150 L60.4 207.5 M160 150 L60.4 92.5" stroke="#EEF3F6"></path>
+<polygon points="160.0,78.7 207.8,122.4 205.8,176.4 160.0,219.0 122.2,171.9 112.2,122.4" fill="#0A6F8F" fill-opacity="0.85"></polygon>
+<polygon points="160.0,71.8 219.8,115.5 221.7,185.6 160.0,221.3 108.2,179.9 104.2,117.8" stroke="#122033" stroke-width="1.6" stroke-dasharray="6 4"></polygon>
+<circle cx="221.7" cy="185.6" r="5" fill="#F1A400"></circle>
+<text x="160" y="22" text-anchor="middle" font-size="12" fill="#122033" font-family="Inter, sans-serif">Technical</text>
+<text x="266" y="88" font-size="12" fill="#122033" font-family="Inter, sans-serif">Sys Design</text>
+<text x="266" y="216" font-size="12" font-weight="600" fill="#122033" font-family="Inter, sans-serif">Communic.</text>
+<text x="160" y="284" text-anchor="middle" font-size="12" fill="#122033" font-family="Inter, sans-serif">Collaboration</text>
+<text x="54" y="216" text-anchor="end" font-size="12" fill="#122033" font-family="Inter, sans-serif">Leadership</text>
+<text x="54" y="88" text-anchor="end" font-size="12" fill="#122033" font-family="Inter, sans-serif">Business</text>
+</svg>
+<div style="display: flex; gap: 16px; font-size: 12px; color: #5A6B7D;"><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 14px; height: 10px; border-radius: 3px; background: #0A6F8F;"></span>Current average</span><span style="display: flex; align-items: center; gap: 6px;"><span style="width: 14px; border-top: 2px dashed #122033;"></span>Required by role</span></div>
+</div>
+
+<div style="grid-column: span 7; background: #FFFFFF; border: 1px solid #E1E8EE; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px;">
+<div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 15px; font-weight: 600;">Skills requiring attention</span><span style="font-size: 12px; color: #5A6B7D;">people below role target</span></div>
+<sc-for list="{{gaps}}" as="g" hint-placeholder-count="5">
+<button onClick="{{g.pick}}" style="{{g.row}}">
+<span style="width: 150px; text-align: left; font-size: 14px; color: #122033;">{{g.name}}</span>
+<span style="flex-grow: 1; height: 12px; border-radius: 6px; background: #EEF3F6;"><span style="{{g.bar}}"></span></span>
+<span style="width: 40px; text-align: right; font-size: 14px; font-weight: 600; color: #122033;">{{g.n}}</span>
+<span style="width: 130px; text-align: right; font-size: 12px; color: #5A6B7D;">{{g.supply}}</span>
+</button>
+</sc-for>
+</div>
+
+<div style="grid-column: span 5; background: #FFFFFF; border: 1px solid #E1E8EE; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px;">
+<div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 15px; font-weight: 600;">{{d.name}} · by cohort</span><span style="font-size: 12px; color: #5A6B7D;">{{d.total}} below target</span></div>
+<sc-for list="{{d.rows}}" as="r" hint-placeholder-count="5">
+<div style="display: grid; grid-template-columns: 140px 1fr 32px; gap: 10px; align-items: center; font-size: 13px;">
+<span>{{r.label}}</span>
+<div style="height: 10px; border-radius: 5px; background: #EEF3F6;"><div style="{{r.bar}}"></div></div>
+<span style="font-weight: 600; text-align: right;">{{r.n}}</span>
+</div>
+</sc-for>
+</div>
+
+<div style="grid-column: span 4; background: #FFFFFF; border: 1px solid #E1E8EE; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px;">
+<span style="font-size: 15px; font-weight: 600;">Demand ↔ supply</span>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+<div style="border-radius: 12px; background: #F2F6F8; padding: 12px; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 12px; color: #5A6B7D;">Need it</span><span style="font-size: 24px; font-weight: 600;">{{d.total}}</span></div>
+<div style="border-radius: 12px; background: #F2F6F8; padding: 12px; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 12px; color: #5A6B7D;">Seats / quarter</span><span style="font-size: 24px; font-weight: 600;">{{d.seats}}</span></div>
+</div>
+<span style="font-size: 13px; line-height: 1.45; color: #3E4E5E;">{{d.supplyText}}</span>
+</div>
+
+<div style="grid-column: span 3; background: #F7F6FC; border: 1px solid #DEDAF3; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 8px;">
+<span style="font-size: 14px; font-weight: 600; color: #5B4DB3;">AI insight</span>
+<span style="font-size: 13px; line-height: 1.5;">{{d.insight}}</span>
+<a href="W-HR-Events.dc.html" style="font-size: 13px; font-weight: 600; margin-top: auto;">See event evidence →</a>
+</div>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+navFor(active) {
+const items = [['Overview', 'W-HR-Overview.dc.html'], ['People', 'W-HR-People.dc.html'], ['Skills', 'W-HR-Skills.dc.html'], ['Events', 'W-HR-Events.dc.html'], ['Career Pipeline', '#']];
+return items.map(([label, href]) => ({ label, href, style: 'height: 40px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; font-size: 14px; ' + (label === active ? 'background: #E7F2F5; color: #0A5C75; font-weight: 600;' : 'color: #3E4E5E;') }));
+}
+constructor(p) { super(p); this.state = { sel: 0 }; }
+renderVals() {
+const nav = this.navFor('Skills');
+const G = [
+{ name: 'Communication', n: 142, supply: '4 activities · all large', seats: 160, rows: [['IT · Middle', 38], ['Operations · Middle', 27], ['Retail · Junior', 22], ['Risk · Middle', 18], ['Finance · Middle', 14]],
+  supplyText: 'Enough seats on paper, but all 4 activities are 60+ person sessions. Verified attendance for this cohort is 45%.',
+  insight: 'Large-format communication sessions show lower verified participation among the affected cohort. Small-group formats had 88% verification. This is a pattern, not proof of the cause.' },
+{ name: 'Leadership', n: 103, supply: '1 activity', seats: 20, rows: [['Operations · Middle', 31], ['Retail · Middle', 26], ['IT · Middle', 21], ['Risk · Middle', 15], ['Finance · Middle', 10]],
+  supplyText: '1 activity with 20 seats per quarter for 103 people. This is where most "no suitable next step" cases come from.',
+  insight: 'The gap is driven by supply, not by engagement: people who got a seat completed at 91%.' },
+{ name: 'System Design', n: 87, supply: '3 activities', seats: 90, rows: [['IT · Middle', 44], ['IT · Junior', 23], ['Risk · Middle', 12], ['Operations · Middle', 5], ['Finance · Middle', 3]],
+  supplyText: 'Supply roughly matches demand. The Case Lab is the most common next step.',
+  insight: 'Healthy: 61% of people with this gap moved closer to target since May.' },
+{ name: 'Data Literacy', n: 68, supply: '2 activities', seats: 40, rows: [['Risk · Junior', 24], ['Retail · Middle', 18], ['Finance · Junior', 14], ['Operations · Junior', 8], ['HR · Middle', 4]],
+  supplyText: 'No activity fits Junior level, where most of the demand is.',
+  insight: 'A Junior-level Data Modeling intro would cover 38 people.' },
+{ name: 'Business Knowledge', n: 51, supply: '3 activities', seats: 75, rows: [['IT · Middle', 19], ['IT · Junior', 12], ['Risk · Middle', 9], ['Operations · Middle', 7], ['Finance · Middle', 4]],
+  supplyText: 'Supply exceeds demand.',
+  insight: 'Mostly engineers; consider pairing with product teams rather than adding courses.' }
+];
+const sel = this.state.sel;
+const gaps = G.map((g, i) => ({ name: g.name, n: String(g.n), supply: g.supply,
+  pick: () => this.setState({ sel: i }),
+  row: 'display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; border: none; width: 100%; background: ' + (i === sel ? '#E7F2F5' : 'transparent') + ';',
+  bar: 'display: block; height: 12px; border-radius: 6px; background: ' + (i === sel ? '#0A6F8F' : '#9CC6D3') + '; width: ' + Math.round(g.n / 142 * 100) + '%;' }));
+const g = G[sel];
+const max = g.rows[0][1];
+const d = { name: g.name, total: String(g.n), seats: String(g.seats), supplyText: g.supplyText, insight: g.insight,
+  rows: g.rows.map(([label, n]) => ({ label, n: String(n), bar: 'height: 10px; border-radius: 5px; background: #0A6F8F; width: ' + Math.round(n / max * 100) + '%;' })) };
+return { nav, gaps, d };
+}
+}
+</script>
+</body>
+</html>

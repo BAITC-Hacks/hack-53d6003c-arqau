@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HR Overview</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#122033;background:#F2F6F8}
+a{color:#0B5F8A;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 1280px; height: 900px; box-sizing: border-box; background: #F2F6F8; display: flex;">
+<aside style="width: 232px; flex-shrink: 0; background: #FFFFFF; border-right: 1px solid #E1E8EE; box-sizing: border-box; padding: 24px 16px; display: flex; flex-direction: column; gap: 4px;">
+<div style="display: flex; align-items: center; gap: 10px; padding: 0 8px 24px;">
+<svg width="24" height="24" viewBox="0 0 22 22" fill="none" stroke="#0A6F8F" stroke-width="1.6"><path d="M11 2 L19 6.5 V15.5 L11 20 L3 15.5 V6.5 Z"></path><circle cx="11" cy="11" r="2.2" fill="#F1A400" stroke="none"></circle></svg>
+<span style="font-size: 16px; font-weight: 700;">Career Quest</span>
+</div>
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="5">
+<a href="{{n.href}}" style="{{n.style}}">{{n.label}}</a>
+</sc-for>
+<div style="flex-grow: 1;"></div>
+<a href="W-HR-Import.dc.html" style="height: 40px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; font-size: 14px; color: #5A6B7D;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2 V10 M4.5 6.5 L8 10 L11.5 6.5 M2 13 H14"></path></svg>Import data</a>
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px; border-top: 1px solid #EEF3F6; margin-top: 8px;">
+<span style="width: 32px; height: 32px; border-radius: 50%; background: #E7F2F5; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #0A5C75;">DS</span>
+<div style="display: flex; flex-direction: column;"><span style="font-size: 13px; font-weight: 600;">Dana S.</span><span style="font-size: 12px; color: #5A6B7D;">HR Business Partner</span></div>
+</div>
+</aside>
+
+<div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+<header style="height: 64px; box-sizing: border-box; padding: 0 32px; display: flex; align-items: center; gap: 16px; background: #FFFFFF; border-bottom: 1px solid #E1E8EE;">
+<label style="width: 420px; height: 40px; box-sizing: border-box; border-radius: 12px; background: #F4F2FC; border: 1px solid #DEDAF3; padding: 0 12px; display: flex; align-items: center; gap: 8px;">
+<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#5B4DB3" stroke-width="1.6"><path d="M10 2v4M10 14v4M2 10h4M14 10h4"></path><circle cx="10" cy="10" r="1.8" fill="#5B4DB3"></circle></svg>
+<input placeholder="Ask AI: why is Communication lagging in IT?" style="flex-grow: 1; border: none; outline: none; background: transparent; font-family: inherit; font-size: 14px;">
+</label>
+<div style="flex-grow: 1;"></div>
+<button style="height: 36px; padding: 0 12px; border: 1px solid #E1E8EE; border-radius: 10px; background: #FFFFFF; font-size: 13px; color: #5A6B7D;">View as: HR ▾</button>
+</header>
+
+<main style="flex-grow: 1; box-sizing: border-box; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 20px;">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em;">People &amp; Development</h1>
+<div style="display: flex; gap: 8px; align-items: center;">
+<span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; background: #EEF3F6; color: #5A6B7D;">Sample data</span>
+<button style="height: 36px; padding: 0 12px; border: 1px solid #E1E8EE; border-radius: 10px; background: #FFFFFF; font-size: 13px;">All departments ▾</button>
+<button style="height: 36px; padding: 0 12px; border: 1px solid #E1E8EE; border-radius: 10px; background: #FFFFFF; font-size: 13px;">Last 6 months ▾</button>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px;">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="5">
+<div style="background: #FFFFFF; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 4px; border: 1px solid #E1E8EE;">
+<span style="font-size: 12px; color: #5A6B7D;">{{k.label}}</span>
+<span style="font-size: 28px; font-weight: 600; letter-spacing: -0.02em;">{{k.value}}</span>
+<span style="font-size: 12px; color: #5A6B7D;">{{k.sub}}</span>
+</div>
+</sc-for>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; flex-grow: 1;">
+<div style="grid-column: span 8; background: #FFFFFF; border: 1px solid #E1E8EE; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px;">
+<div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;"><span style="font-size: 15px; font-weight: 600;">Skill gap by department</span><span style="font-size: 12px; color: #5A6B7D;">% of people below role target · click to drill down</span></div>
+<div style="display: grid; grid-template-columns: 100px repeat(6, minmax(0, 1fr)); gap: 4px; font-size: 12px; color: #5A6B7D;">
+<span></span>
+<sc-for list="{{skills}}" as="s" hint-placeholder-count="6"><span style="text-align: center;">{{s}}</span></sc-for>
+</div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+<div style="display: grid; grid-template-columns: 100px repeat(6, minmax(0, 1fr)); gap: 4px; font-size: 13px;">
+<span style="display: flex; align-items: center;">{{r.dept}}</span>
+<sc-for list="{{r.cells}}" as="c" hint-placeholder-count="6"><a href="W-HR-Skills.dc.html" style="{{c.style}}">{{c.v}}</a></sc-for>
+</div>
+</sc-for>
+<div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #5A6B7D; margin-top: 6px;">
+<span>Share below target</span>
+<span style="width: 20px; height: 10px; border-radius: 3px; background: #EAF2F5;"></span><span>&lt;25%</span>
+<span style="width: 20px; height: 10px; border-radius: 3px; background: #B9D9E2;"></span><span>25–34%</span>
+<span style="width: 20px; height: 10px; border-radius: 3px; background: #5FA3B8;"></span><span>35–44%</span>
+<span style="width: 20px; height: 10px; border-radius: 3px; background: #0A5C75;"></span><span>45%+</span>
+</div>
+</div>
+
+<div style="grid-column: span 4; grid-row: span 2; background: #F7F6FC; border: 1px solid #DEDAF3; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px;">
+<div style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: #5B4DB3;"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#5B4DB3" stroke-width="1.6"><path d="M10 2v4M10 14v4M2 10h4M14 10h4"></path><circle cx="10" cy="10" r="1.8" fill="#5B4DB3"></circle></svg>AI Insights</div>
+<div style="background: #FFFFFF; border: 1px solid #DEDAF3; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px;">
+<span style="font-size: 14px; font-weight: 600;">Communication gap concentrates in IT Middle</span>
+<div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; line-height: 1.45;">
+<div><span style="font-weight: 600; color: #00664B;">We know:</span> 38 people below L3; all 4 relevant activities are large-format.</div>
+<div><span style="font-weight: 600; color: #6E4E00;">We don't know:</span> why participation is lower. Format is one hypothesis.</div>
+<div><span style="font-weight: 600; color: #5B4DB3;">Suggest:</span> pilot a small-group format for this cohort.</div>
+</div>
+<a href="W-HR-Skills.dc.html" style="font-size: 13px; font-weight: 600;">Show evidence →</a>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #DEDAF3; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px;">
+<span style="font-size: 14px; font-weight: 600;">57 people have no suitable next step</span>
+<span style="font-size: 13px; line-height: 1.45; color: #5A6B7D;">Mostly Leadership at Middle grade: demand in 5 departments, 1 activity on offer. A supply gap, not a people gap.</span>
+<a href="W-HR-Skills.dc.html" style="font-size: 13px; font-weight: 600;">Open Leadership →</a>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #DEDAF3; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px;">
+<span style="font-size: 14px; font-weight: 600;">High registration, low verification</span>
+<span style="font-size: 13px; line-height: 1.45; color: #5A6B7D;">Communication Masterclass: 120 registered, 54 QR-verified.</span>
+<a href="W-HR-Events.dc.html" style="font-size: 13px; font-weight: 600;">Event analytics →</a>
+</div>
+</div>
+
+<div style="grid-column: span 4; background: #FFFFFF; border: 1px solid #E1E8EE; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px;">
+<div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 15px; font-weight: 600;">Development-active</span><span style="font-size: 12px; color: #5A6B7D;">Apr – Sep</span></div>
+<svg width="280" height="100" viewBox="0 0 280 100" fill="none" aria-label="Development-active share rose from 58% to 68%">
+<path d="M0 90 H280 M0 50 H280 M0 10 H280" stroke="#EEF3F6"></path>
+<path d="M0 70 L56 64 L112 66 L168 52 L224 44 L280 30 L280 90 L0 90 Z" fill="#0A6F8F" fill-opacity="0.08"></path>
+<polyline points="0,70 56,64 112,66 168,52 224,44 280,30" stroke="#0A6F8F" stroke-width="2.5" stroke-linejoin="round"></polyline>
+<circle cx="280" cy="30" r="4" fill="#0A6F8F"></circle>
+</svg>
+<div style="display: flex; justify-content: space-between; font-size: 12px; color: #5A6B7D;"><span>58%</span><span style="color: #00664B; font-weight: 600;">68% now</span></div>
+</div>
+<div style="grid-column: span 4; background: #FFFFFF; border: 1px solid #E1E8EE; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px;">
+<div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 15px; font-weight: 600;">Career pipeline</span><span style="font-size: 12px; color: #5A6B7D;">Middle → Senior</span></div>
+<sc-for list="{{pipe}}" as="p" hint-placeholder-count="5">
+<div style="display: grid; grid-template-columns: 150px 1fr 32px; gap: 8px; align-items: center; font-size: 12px;">
+<span style="color: #5A6B7D;">{{p.label}}</span>
+<div style="height: 10px; border-radius: 5px; background: #EEF3F6;"><div style="{{p.style}}"></div></div>
+<span style="font-weight: 600; text-align: right;">{{p.n}}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+const items = [['Overview', 'W-HR-Overview.dc.html'], ['People', 'W-HR-People.dc.html'], ['Skills', 'W-HR-Skills.dc.html'], ['Events', 'W-HR-Events.dc.html'], ['Career Pipeline', '#']];
+const nav = items.map(([label, href]) => ({ label, href, style: 'height: 40px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; font-size: 14px; ' + (label === 'Overview' ? 'background: #E7F2F5; color: #0A5C75; font-weight: 600;' : 'color: #3E4E5E;') }));
+const kpis = [
+{ label: 'Employees in scope', value: '1,240', sub: '1–5 years experience' },
+{ label: 'Development-active', value: '68%', sub: 'any activity, 90 days' },
+{ label: 'Critical skill gaps', value: '312', sub: 'people × critical skills' },
+{ label: 'Support signals', value: '41', sub: 'change vs own baseline' },
+{ label: 'No suitable next step', value: '57', sub: 'supply gap' }
+];
+const skills = ['Technical', 'Sys Design', 'Communic.', 'Collab.', 'Leadership', 'Business'];
+const raw = [['IT', [18, 42, 51, 20, 33, 29]], ['Operations', [22, 15, 44, 18, 40, 24]], ['Retail', [25, 8, 38, 21, 46, 19]], ['Risk', [20, 27, 30, 16, 35, 22]], ['Finance', [14, 12, 28, 15, 31, 17]]];
+const shade = (v) => v >= 45 ? ['#0A5C75', '#FFFFFF'] : v >= 35 ? ['#5FA3B8', '#FFFFFF'] : v >= 25 ? ['#B9D9E2', '#122033'] : ['#EAF2F5', '#122033'];
+const rows = raw.map(([dept, vals]) => ({ dept, cells: vals.map((v) => { const [bg, fg] = shade(v); return { v: v + '%', style: 'height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; background: ' + bg + '; color: ' + fg + ';' }; }) }));
+const p = [[184, 'Near next milestone'], [96, 'One critical gap'], [71, 'Actively developing'], [38, 'Requirements met'], [22, 'Ready for review']];
+const pipe = p.map(([n, label]) => ({ n: String(n), label, style: 'height: 10px; border-radius: 5px; background: #00815F; width: ' + Math.round(n / 184 * 100) + '%;' }));
+return { nav, kpis, skills, rows, pipe };
+}
+}
+</script>
+</body>
+</html>

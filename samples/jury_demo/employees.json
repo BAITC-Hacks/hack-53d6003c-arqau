@@ -1,0 +1,43 @@
+{
+  "meta": {
+    "dataset": "Career Quest",
+    "version": "1.0",
+    "as_of_date": "2026-10-01"
+  },
+  "employees": [
+    {
+      "employee_id": "E9001",
+      "full_name": "Demo Trap Profile",
+      "department": "Backend Development",
+      "role": "Backend Engineer",
+      "grade": "Middle",
+      "manager_id": null,
+      "hire_date": "2023-02-01",
+      "tenure_months": 43,
+      "work_format": "hybrid",
+      "preferred_language": "ru",
+      "career_goal": {
+        "target_role": "Backend Engineer",
+        "target_grade": "Senior"
+      },
+      "skills": {
+        "SK_PYTHON": 3,
+        "SK_SQL": 3,
+        "SK_API_DESIGN": 3,
+        "SK_SYSTEM_DESIGN": 2,
+        "SK_CLOUD": 2,
+        "SK_CONTAINERS": 2,
+        "SK_CICD": 2,
+        "SK_APP_SECURITY": 2,
+        "SK_OBSERVABILITY": 2,
+        "SK_COMMUNICATION": 3,
+        "SK_TEAMWORK": 3,
+        "SK_PROBLEM_SOLVING": 3,
+        "SK_MENTORING": 1,
+        "SK_STAKEHOLDER_MGMT": 1,
+        "SK_PUBLIC_SPEAKING": 1
+      },
+      "last_review_date": "2026-06-15"
+    }
+  ]
+}

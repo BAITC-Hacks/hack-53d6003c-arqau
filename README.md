@@ -30,7 +30,7 @@ Place these official source files in `data/`:
 - `events.json`
 - `activity_history.csv`
 
-The loader preserves all supplied fields and validates schemas, value ranges, unique IDs, role/grade combinations, manager relationships, career goals, skill references, and history references. Invalid data stops startup with a targeted error.
+The loader preserves all supplied fields and validates schemas, value ranges, unique IDs, role/grade combinations, manager relationships, career goals, skill references, and history references. Structural problems (duplicate IDs, unknown references, bad schema) stop startup with a targeted error. Deviations from dataset conventions, such as a manager outside the employee's department or below Lead, are logged and listed under `warnings` in `/health`, so additional evaluation profiles never block startup.
 
 The existing repository's `dataset/` directory is also detected automatically,
 so the current GitHub layout works without duplicating the source files. To
@@ -98,6 +98,7 @@ The Hour 1-2 suite verifies:
 - indexes are created;
 - missing source files fail clearly;
 - broken cross-file employee references fail with the exact record ID;
+- manager convention deviations produce warnings instead of failing;
 - the health endpoint reports the loaded snapshot.
 - arbitrary employee progress can be calculated;
 - null goals resolve to the next grade;

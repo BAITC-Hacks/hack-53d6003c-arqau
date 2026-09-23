@@ -33,6 +33,7 @@ class DatasetBundle:
     events: EventsDataset
     history: tuple[HistoryRecord, ...]
     indexes: DatasetIndexes
+    warnings: tuple[str, ...] = ()
 
     @property
     def counts(self) -> dict[str, int]:
@@ -65,7 +66,7 @@ class DatasetLoader:
         employees = self._load_json("employees.json", EmployeesDataset)
         events = self._load_json("events.json", EventsDataset)
         history = self._load_history()
-        self._validate_relations(skills, employees, events, history)
+        warnings = self._validate_relations(skills, employees, events, history)
         indexes = self._build_indexes(skills, employees, events, history)
         return DatasetBundle(
             data_dir=self.data_dir,
@@ -74,6 +75,7 @@ class DatasetLoader:
             events=events,
             history=history,
             indexes=indexes,
+            warnings=tuple(warnings),
         )
 
     def _check_required_files(self) -> None:
@@ -135,8 +137,15 @@ class DatasetLoader:
         employees: EmployeesDataset,
         events: EventsDataset,
         history: tuple[HistoryRecord, ...],
-    ) -> None:
+    ) -> list[str]:
+        """Raise on broken structure; return warnings for dataset-convention deviations.
+
+        Hard errors are problems the domain services cannot work around (duplicate IDs,
+        unknown references). Convention checks (e.g. manager department/grade) only warn,
+        so additional profiles supplied at evaluation time never block startup.
+        """
         errors: list[str] = []
+        warnings: list[str] = []
         skill_ids = {item.skill_id for item in skills.skills}
         employee_by_id = {item.employee_id: item for item in employees.employees}
         event_ids = {item.event_id for item in events.events}
@@ -196,11 +205,11 @@ class DatasetLoader:
                         f"employee {employee.employee_id} references unknown manager_id {employee.manager_id}"
                     )
                 elif manager.department != employee.department:
-                    errors.append(
+                    warnings.append(
                         f"employee {employee.employee_id} manager {manager.employee_id} is in a different department"
                     )
                 elif manager.grade.value != "Lead":
-                    errors.append(
+                    warnings.append(
                         f"employee {employee.employee_id} manager {manager.employee_id} is not a Lead"
                     )
             if employee.career_goal is not None:
@@ -248,6 +257,7 @@ class DatasetLoader:
             preview = "\n- ".join(errors[:30])
             suffix = f"\n... and {len(errors) - 30} more error(s)" if len(errors) > 30 else ""
             raise DatasetValidationError(f"Cross-file dataset validation failed:\n- {preview}{suffix}")
+        return warnings
 
     @staticmethod
     def _build_indexes(

@@ -1,15 +1,13 @@
-from pathlib import Path
-
 from fastapi.testclient import TestClient
 
-from app.main import create_app
+from app.main import configured_data_dir, create_app
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DATA_DIR = configured_data_dir()
 
 
 def test_health_reports_loaded_dataset() -> None:
-    with TestClient(create_app(PROJECT_ROOT / "data")) as client:
+    with TestClient(create_app(DATA_DIR)) as client:
         response = client.get("/health")
 
     assert response.status_code == 200
@@ -17,10 +15,11 @@ def test_health_reports_loaded_dataset() -> None:
     assert payload["status"] == "ok"
     assert payload["dataset"]["counts"]["employees"] == 200
     assert payload["dataset"]["counts"]["history_records"] == 2743
+    assert payload["dataset"]["warnings"] == []
 
 
 def test_employee_progress_endpoint_supports_arbitrary_employee() -> None:
-    with TestClient(create_app(PROJECT_ROOT / "data")) as client:
+    with TestClient(create_app(DATA_DIR)) as client:
         response = client.get("/employees/E0028/progress")
 
     assert response.status_code == 200
@@ -32,7 +31,7 @@ def test_employee_progress_endpoint_supports_arbitrary_employee() -> None:
 
 
 def test_unknown_employee_returns_404() -> None:
-    with TestClient(create_app(PROJECT_ROOT / "data")) as client:
+    with TestClient(create_app(DATA_DIR)) as client:
         response = client.get("/employees/E9999/progress")
 
     assert response.status_code == 404

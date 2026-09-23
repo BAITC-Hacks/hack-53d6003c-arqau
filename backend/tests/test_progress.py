@@ -1,11 +1,9 @@
-from pathlib import Path
-
 from app.career_progress import SkillProgressService
 from app.data_loader import DatasetLoader
+from app.main import configured_data_dir
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATASET = DatasetLoader(PROJECT_ROOT / "data").load()
+DATASET = DatasetLoader(configured_data_dir()).load()
 SERVICE = SkillProgressService(DATASET)
 
 

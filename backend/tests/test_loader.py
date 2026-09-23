@@ -1,16 +1,17 @@
 from __future__ import annotations
 
 import csv
+import json
 import shutil
 from pathlib import Path
 
 import pytest
 
 from app.data_loader import DatasetLoader, DatasetValidationError
+from app.main import configured_data_dir
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATA_DIR = PROJECT_ROOT / "data"
+DATA_DIR = configured_data_dir()
 
 
 def test_official_dataset_loads_with_expected_counts() -> None:
@@ -50,3 +51,25 @@ def test_missing_required_file_fails_clearly(tmp_path: Path) -> None:
     with pytest.raises(DatasetValidationError, match="missing required files"):
         DatasetLoader(tmp_path).load()
 
+
+def test_manager_convention_deviation_warns_instead_of_failing(tmp_path: Path) -> None:
+    data = tmp_path / "data"
+    shutil.copytree(DATA_DIR, data)
+    employees_path = data / "employees.json"
+    payload = json.loads(employees_path.read_text(encoding="utf-8"))
+    employees = payload["employees"]
+    non_lead = next(item for item in employees if item["grade"] != "Lead")
+    report = next(
+        item
+        for item in employees
+        if item["employee_id"] != non_lead["employee_id"] and item["manager_id"] is not None
+    )
+    report["manager_id"] = non_lead["employee_id"]
+    employees_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    bundle = DatasetLoader(data).load()
+
+    assert any(
+        report["employee_id"] in warning and "not a Lead" in warning for warning in bundle.warnings
+    )
+    assert report["employee_id"] in bundle.indexes.employees_by_id

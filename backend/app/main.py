@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -12,6 +13,7 @@ from .models import Grade
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+logger = logging.getLogger(__name__)
 
 
 def configured_data_dir() -> Path:
@@ -31,6 +33,8 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         app.state.dataset = DatasetLoader(source_dir).load()
+        for warning in app.state.dataset.warnings:
+            logger.warning("Dataset warning: %s", warning)
         yield
 
     application = FastAPI(
@@ -52,6 +56,7 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
                 "as_of_date": dataset.skills.meta.as_of_date.isoformat(),
                 "source": str(dataset.data_dir),
                 "counts": dataset.counts,
+                "warnings": list(dataset.warnings),
             },
         }
 

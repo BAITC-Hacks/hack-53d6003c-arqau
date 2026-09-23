@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from .analytics import AnalyticsService, EngagementSignalService
 from .auth import (
@@ -503,6 +503,24 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
                 detail=f"Role/grade profile {role}/{grade.value} not found",
             )
         return profile.model_dump(mode="json")
+
+    # The production image contains the Vite build. API and documentation routes
+    # above retain priority; every other GET is handled by the React application.
+    frontend_dist = PROJECT_ROOT / "frontend" / "dist"
+
+    @application.get("/{frontend_path:path}", include_in_schema=False)
+    def frontend(frontend_path: str):
+        dist_root = frontend_dist.resolve()
+        candidate = (frontend_dist / frontend_path).resolve()
+        if candidate.is_relative_to(dist_root) and candidate.is_file():
+            return FileResponse(candidate)
+        index = frontend_dist / "index.html"
+        if index.is_file():
+            return FileResponse(index)
+        raise HTTPException(
+            status_code=404,
+            detail="Frontend build not found. Run `npm --prefix frontend run build`.",
+        )
 
     return application
 

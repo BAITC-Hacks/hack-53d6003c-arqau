@@ -1,25 +1,31 @@
 # Career Quest
 
-Career Quest is an explainable employee-development platform for the HackAlem AI Halyk Bank track. The product will connect career targets, skill gaps, suitable development activities, verified participation, and updated career progress.
+Career Quest is an explainable employee-development platform for the HackAlem AI Halyk Bank track. Employees often cannot see which action will actually move them toward a career goal, while HR sees participation data without a reliable view of blocked skills or catalog gaps. Career Quest turns assessed skills, goals, learning history, and the event catalog into transparent next actions and live workforce insights.
 
-This repository currently contains the backend foundation: a FastAPI service, strict typed dataset models, cross-file validation, atomic runtime imports, live activity updates, employee profiles, career-target resolution, assessed-versus-current skill progress, gap analysis, deterministic explainable recommendations, health endpoints, and automated tests. The presentation layer is intentionally not fixed yet.
+The solution is a working employee and HR web app backed by deterministic services: it resolves a career target, keeps formal assessment separate from estimated development, ranks useful activities with inspectable factors, shows mandatory work separately, recalculates after completion, and aggregates privacy-conscious HR signals. No LLM is required for the core decision path.
 
 ## Current architecture
 
 ```text
-data/*.json + data/*.csv
-        |
-        v
-DatasetLoader -> Pydantic schema validation -> cross-file validation
-        |
-        v
-DatasetBundle + indexes
-        |
-        v
-Progress service -> Recommendation engine -> FastAPI
+React + TypeScript web app (employee mobile / HR desktop)
+                         |
+                         v
+                 FastAPI + HMAC auth
+                  /       |        \
+                 v        v         v
+       Progress service  Recommendation  HR analytics/signals
+                 \        |         /
+                  v       v        v
+              Runtime DataStore + immutable indexes
+                         |
+                         v
+    DatasetLoader -> Pydantic schemas -> cross-file validation
+                         |
+                         v
+        skills.json / employees.json / events.json / history.csv
 ```
 
-Business logic will be added as independent domain services so eligibility, progress, and recommendations remain deterministic and testable rather than prompt-driven.
+FastAPI serves both the API and the compiled single-page application in the production container. Domain logic remains independent, deterministic, and directly testable.
 
 ## Dataset
 
@@ -36,38 +42,54 @@ The existing repository's `dataset/` directory is also detected automatically,
 so the current GitHub layout works without duplicating the source files. To
 load another compatible dataset, set `CAREER_QUEST_DATA_DIR` to its directory.
 
-## Install and run
+## One-command demo
+
+Docker is the fastest jury path:
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+Open <http://localhost:8000>. The same origin serves the React app and FastAPI;
+API documentation remains at <http://localhost:8000/docs>. Stop with `Ctrl+C`
+and remove the container with `docker compose down`.
+
+The checked-in `dataset/` is synthetic demo data. To boot against another
+compatible base dataset without copying it into the repository:
+
+```bash
+CAREER_QUEST_DATA_DIR=/absolute/path/to/dataset docker compose up --build
+```
+
+## Local development
 
 Python 3.11 or newer is required.
 
 ```bash
 make install
 make test
-make run
+make dev
 ```
 
-Open:
+`make dev` starts FastAPI on port 8000 and Vite on port 5173; open
+<http://127.0.0.1:5173>. `make run` starts only the backend with reload. To
+exercise the production path locally, run `make build-frontend && make run`
+and open port 8000.
+
+Useful URLs:
 
 - Health and dataset counts: <http://127.0.0.1:8000/health>
 - Interactive API documentation: <http://127.0.0.1:8000/docs>
 
-### Web app
+### Web app behavior
 
 The Step 5 interface is a Vite + React + TypeScript + Tailwind application. It
 uses the FastAPI service for every employee, skill, event, progress,
 recommendation, journey, analytics, and import value; the design references in
 `docs/design/` are visual guidance only.
 
-Run the backend first, then the frontend in a second terminal:
-
-```bash
-make run
-cd frontend
-npm install
-npm run dev
-```
-
-Open <http://127.0.0.1:5173>. The demo login offers the live synthetic employee
+The demo login offers the live synthetic employee
 picker (including newly imported profiles) and the HR role. The Vite development
 server proxies `/api` to `http://127.0.0.1:8000`.
 
@@ -83,7 +105,8 @@ Employee routes are mobile-first: Home, Growth Web, Path, Events, and the
 structured Career AI explanation view. HR routes are desktop-first: Overview,
 People, Skills, Events, and the real dry-run/import flow. Completing an activity
 uses the API diff, refreshes progress and recommendations, and shows the actual
-readiness and skill changes. No QR flow or LLM call is included in Step 5.
+readiness and skill changes. QR verification and generative AI are intentionally
+not part of this build; the demo uses employee self-report and deterministic text.
 
 Hour 2 endpoints:
 
@@ -206,7 +229,14 @@ without changing live state.
 Multipart upload:
 
 ```bash
+TOKEN=$(curl --silent --fail-with-body -X POST \
+  -H 'Content-Type: application/json' \
+  -d '{"role":"hr"}' \
+  http://127.0.0.1:8000/auth/demo-login | \
+  .venv/bin/python -c 'import json,sys; print(json.load(sys.stdin)["access_token"])')
+
 curl --fail-with-body -X POST \
+  -H "Authorization: Bearer $TOKEN" \
   -F "files=@/path/to/employees.json" \
   -F "files=@/path/to/activity_history.csv" \
   http://127.0.0.1:8000/import
@@ -223,6 +253,24 @@ For startup import, point to a directory containing any subset of those files:
 ```bash
 CAREER_QUEST_EXTRA_DATA_DIR=/path/to/extra-data make run
 ```
+
+### How the jury loads test profiles
+
+There are three supported paths, all using the same validation and live service
+rebuild:
+
+1. **UI:** sign in as HR, open **Import**, choose one or more compatible files,
+   run **Validate**, review the dry-run report, then select **Import**.
+2. **API:** use the HR-token multipart command above. Replace `/import` with
+   `/import/dry-run` to validate without changing the live snapshot; add
+   `?mode=upsert` only when intentionally replacing existing IDs.
+3. **Startup directory:** run
+   `CAREER_QUEST_EXTRA_DATA_DIR=/absolute/path/to/extra-data make run`. The
+   directory may contain any subset of the four supported files and is merged
+   before the first request.
+
+For a repeatable presentation, HR can call `POST /admin/reset` with the same
+Bearer token, or simply restart the Docker container.
 
 `POST /employees/{id}/activities` accepts `completed` or `in_progress` with a
 source of `self_report`, `qr_verified`, or `hr_confirmed`. Completion updates only
@@ -313,7 +361,80 @@ Example health response:
 }
 ```
 
+## AI layer and fallback
+
+The current Career AI screen is an explainability view, not a generative model.
+It renders the same structured factors, expected effects, blocked-gap reasons,
+and localized templates returned by the recommendation API. This makes the full
+demo work offline and ensures an unavailable provider can never block a career
+recommendation. `OPENAI_API_KEY` and `OPENAI_MODEL` are reserved in
+`.env.example` for a later, optional natural-language layer; no key or external
+AI call is used in this build, and an eventual model must explain structured
+results rather than make eligibility or ranking decisions.
+
+## Privacy and data policy
+
+- The repository's `dataset/` contains synthetic demo identities only. Official,
+  evaluation, or employee data must stay outside Git and be loaded through the
+  UI, API, or environment variable; `data/`, `private-data/`, and `.env` are
+  ignored.
+- Docker mounts the selected base dataset read-only. Runtime imports live only
+  in process memory and disappear on reset or restart.
+- Employee tokens are self-only. HR endpoints return initials/IDs for
+  people-oriented analytics and never expose private Career AI content.
+- Recommendations and support signals are decision support, not performance
+  ratings. The system records factual evidence, never diagnoses motivation, and
+  keeps formal assessed levels distinct from estimates inferred from activities.
+- The core app sends no dataset content to an external AI service.
+
+## Demo script
+
+1. Run `docker compose up --build`, open <http://localhost:8000>, and choose
+   employee **E0028** in the live picker.
+2. On **Home**, show readiness and the critical blocked-gap summary. Open
+   **Events**, expand **Why this?**, and point to the numbered gap, estimated
+   gain, friction evidence, availability, and match label.
+3. Mark an eligible recommended activity completed. The confirmation uses the
+   API's real before/after diff; revisit **Home** and **Growth** to show changed
+   effective skill/readiness and the refreshed recommendation list.
+4. Sign out, enter the HR workspace, and show Overview, People support signals,
+   Skills, Events, and the separation between employee needs and catalog gaps.
+5. In **Import**, dry-run a new sample `employees.json` plus optional history,
+   review validation, import, then sign in as that employee. Repeat **Why this?**
+   and completion to demonstrate that nothing was scripted for E0028.
+6. Use **Reset demo data** before repeating the presentation.
+
+## Limitations and next steps
+
+- QR attendance verification is deferred; the current demo supports employee
+  self-report and HR-confirmed activity updates through the API.
+- Generative Career AI is optional and deferred. Deterministic localized
+  explanations remain the safe fallback.
+- Runtime imports are in-memory by design; a production deployment would add a
+  transactional database, SSO, audit logs, secrets management, and background
+  event ingestion.
+- Catalog capacity, waitlists, and calendar enrollment are not modeled. The
+  engine ranks only the availability represented in the supplied snapshot.
+- Frontend browser automation is provided separately from the default unit test
+  path because it requires an installed Playwright browser.
+
 ## Tests
+
+Run all default backend and frontend tests with one command:
+
+```bash
+make test
+```
+
+Build the production frontend and validate the Compose definition with:
+
+```bash
+make build-frontend
+docker compose config
+```
+
+Optional browser tests: `npm --prefix frontend run e2e` after installing a
+Playwright browser.
 
 The backend suite verifies:
 

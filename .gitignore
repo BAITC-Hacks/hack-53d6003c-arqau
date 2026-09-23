@@ -12,3 +12,5 @@ frontend/playwright-report/
 frontend/*.tsbuildinfo
 frontend/vite.config.js
 frontend/vite.config.d.ts
+data/
+private-data/

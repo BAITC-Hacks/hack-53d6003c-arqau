@@ -5,12 +5,14 @@ import logging
 import os
 import secrets
 from contextlib import asynccontextmanager
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Annotated, Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 
+from .analytics import AnalyticsService, EngagementSignalService
 from .auth import (
     AuthError,
     AuthPrincipal,
@@ -60,6 +62,10 @@ def store_from(request: Request) -> DataStore:
 
 def auth_from(request: Request) -> AuthService:
     return request.app.state.auth
+
+
+def analytics_from(request: Request) -> AnalyticsService:
+    return AnalyticsService(store_from(request).dataset)
 
 
 def authenticated_principal(
@@ -385,6 +391,102 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
             "status": "ok",
             "employees": store_from(request).dataset.counts["employees"],
         }
+
+    @application.get("/hr/skill-gaps", tags=["hr"])
+    def hr_skill_gaps(
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+        department: str | None = Query(default=None),
+        role: str | None = Query(default=None),
+        grade: Grade | None = Query(default=None),
+    ) -> dict[str, object]:
+        return analytics_from(request).skill_gaps(department, role, grade)
+
+    @application.get("/hr/no-next-step", tags=["hr"])
+    def hr_no_next_step(
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+    ) -> dict[str, object]:
+        return analytics_from(request).no_next_step()
+
+    @application.get("/hr/participation", tags=["hr"])
+    def hr_participation(
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+        event_type: str | None = Query(default=None, alias="type"),
+        event_format: str | None = Query(default=None, alias="format"),
+        start: date | None = Query(default=None),
+        end: date | None = Query(default=None),
+        period: int | None = Query(default=None, ge=1, le=730),
+    ) -> dict[str, object]:
+        analytics = analytics_from(request)
+        if period is not None and start is None:
+            start = analytics.as_of_date - timedelta(days=period - 1)
+        if period is not None and end is None:
+            end = analytics.as_of_date
+        try:
+            return analytics.participation(
+                event_type,
+                event_format,
+                start,
+                end,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @application.get("/hr/dashboard", tags=["hr"])
+    def hr_dashboard(
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+    ) -> dict[str, object]:
+        return analytics_from(request).dashboard()
+
+    @application.get("/hr/heatmap", tags=["hr"])
+    def hr_heatmap(
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+        top_n: int = Query(default=10, ge=1, le=60),
+    ) -> dict[str, object]:
+        return analytics_from(request).heatmap(top_n)
+
+    @application.get("/hr/trend", tags=["hr"])
+    def hr_trend(
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+    ) -> dict[str, object]:
+        return analytics_from(request).trend()
+
+    @application.get("/hr/pipeline", tags=["hr"])
+    def hr_pipeline(
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+    ) -> dict[str, object]:
+        return analytics_from(request).pipeline()
+
+    @application.get("/hr/opportunity-gaps", tags=["hr"])
+    def hr_opportunity_gaps(
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+    ) -> dict[str, object]:
+        return analytics_from(request).opportunity_gaps()
+
+    @application.get("/hr/support-signals", tags=["hr"])
+    def hr_support_signals(
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+    ) -> dict[str, object]:
+        analytics = analytics_from(request)
+        return EngagementSignalService(analytics.dataset, analytics).signals()
+
+    @application.get("/employees/{employee_id}/journey", tags=["employees"])
+    def employee_journey(
+        employee_id: str,
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(profile_principal)],
+    ) -> dict[str, object]:
+        if employee_id not in store_from(request).dataset.indexes.employees_by_id:
+            raise HTTPException(status_code=404, detail=f"Employee {employee_id} not found")
+        return analytics_from(request).journey(employee_id)
 
     @application.get("/career/requirements", tags=["career"])
     def career_requirements(

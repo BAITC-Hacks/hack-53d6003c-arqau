@@ -53,9 +53,10 @@ export const api = {
   login: (role: Role, employeeId?: string) => request<{access_token:string;role:Role;employee_id?:string}>('/auth/demo-login', {method:'POST', body:JSON.stringify({role, employee_id:employeeId})}),
   employee: (id:string, token:string) => request<Employee>(`/employees/${id}`, {}, token),
   progress: (id:string, token:string) => request<Progress>(`/employees/${id}/progress`, {}, token),
-  recommendations: (id:string, token:string) => request<Recommendations>(`/employees/${id}/recommendations`, {}, token),
+  recommendations: (id:string, token:string, language:'en'|'ru'|'kk'='en') => request<Recommendations>(`/employees/${id}/recommendations?language=${language}`, {}, token),
   journey: (id:string, token:string) => request<Journey>(`/employees/${id}/journey`, {}, token),
   activity: (id:string,eventId:string,status:'completed'|'in_progress',token:string) => request<ActivityDiff>(`/employees/${id}/activities`, {method:'POST',body:JSON.stringify({event_id:eventId,status,source:'self_report'})}, token),
   hr: <T,>(path:string, token:string) => request<T>(`/hr/${path}`, {}, token),
+  hrPost: <T,>(path:string, body:unknown, token:string) => request<T>(`/hr/${path}`, {method:'POST',body:JSON.stringify(body)}, token),
   importData: (files:File[], dryRun:boolean, token:string) => { const form=new FormData(); files.forEach(file=>form.append('files',file)); return request<{added_employees:string[];added_history:string[];warnings:string[];errors:Array<{file:string;row?:number;id?:string;message:string}>}>(`/import${dryRun?'/dry-run':''}`,{method:'POST',body:form},token) },
 }

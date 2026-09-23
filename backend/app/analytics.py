@@ -114,6 +114,41 @@ class AnalyticsService:
             "items": items,
         }
 
+    def employees_for_skill_gap(self, skill_id: str) -> dict[str, Any]:
+        """Return the people behind an aggregate skill-gap row for HR drill-down."""
+        if skill_id not in self.dataset.indexes.skills_by_id:
+            raise KeyError(skill_id)
+        items: list[dict[str, Any]] = []
+        for employee in self.dataset.employees.employees:
+            gap = next(
+                (item for item in self.progress(employee.employee_id).gaps if item.skill_id == skill_id),
+                None,
+            )
+            if gap is None:
+                continue
+            items.append(
+                {
+                    "employee_id": employee.employee_id,
+                    "full_name": employee.full_name,
+                    "initials": self._initials(employee),
+                    "role": employee.role,
+                    "grade": employee.grade.value,
+                    "department": employee.department,
+                    "effective_level": gap.effective_level,
+                    "target_level": gap.target_level,
+                    "gap": gap.gap,
+                    "critical": gap.critical,
+                }
+            )
+        items.sort(key=lambda item: (-int(item["critical"]), -item["gap"], item["employee_id"]))
+        return {
+            "as_of_date": self.as_of_date.isoformat(),
+            "skill_id": skill_id,
+            "name": self.dataset.indexes.skills_by_id[skill_id].name,
+            "count": len(items),
+            "items": items,
+        }
+
     def no_next_step(self) -> dict[str, Any]:
         items: list[dict[str, Any]] = []
         for employee in self.dataset.employees.employees:
@@ -256,11 +291,11 @@ class AnalyticsService:
     def heatmap(self, top_n: int | None = None) -> dict[str, Any]:
         top_n = top_n or int(ANALYTICS_THRESHOLDS["heatmap_top_skills"])
         gap_rows = self.skill_gaps()["items"]
+        # Keep the matrix intentionally small: the UI is a comparison, not a data dump.
         chosen = {item["skill_id"] for item in gap_rows[:top_n]}
         critical_ids: set[str] = set()
         for employee in self.dataset.employees.employees:
             critical_ids.update(item.skill_id for item in self.progress(employee.employee_id).critical_gaps)
-        chosen.update(critical_ids)
         skills = [
             {
                 "skill_id": skill_id,

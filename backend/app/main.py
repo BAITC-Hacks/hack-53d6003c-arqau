@@ -11,6 +11,7 @@ from typing import Annotated, Literal
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse
+from pydantic import BaseModel, Field
 
 from .analytics import AnalyticsService, EngagementSignalService
 from .auth import (
@@ -27,12 +28,22 @@ from .data_store import (
     DataStoreError,
     ImportReport,
 )
-from .models import Grade
+from .models import Event, Grade
 from .recommendations import EmployeeRecommendations
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 logger = logging.getLogger(__name__)
+
+
+class CreateCompanyEventRequest(BaseModel):
+    title: str = Field(min_length=2, max_length=160)
+    description: str = Field(min_length=2, max_length=1000)
+    type: Literal["compliance", "onboarding", "course", "workshop", "mentoring", "certification", "meetup"] = "compliance"
+    format: Literal["online", "offline", "self_paced"] = "self_paced"
+    duration_hours: float = Field(default=1, gt=0, le=200)
+    mandatory: bool = True
+    upcoming_session: date | None = None
 
 
 def configured_data_dir() -> Path:
@@ -313,12 +324,17 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
         request: Request,
         _principal: Annotated[AuthPrincipal, Depends(profile_principal)],
         debug: bool = Query(default=False),
+        language: Literal["en", "ru", "kk"] | None = Query(default=None),
     ) -> EmployeeRecommendations:
         store = store_from(request)
         dataset = store.dataset
         if employee_id not in dataset.indexes.employees_by_id:
             raise HTTPException(status_code=404, detail=f"Employee {employee_id} not found")
-        return store.recommendations.recommend(employee_id, debug=debug)
+        return store.recommendations.recommend(
+            employee_id,
+            debug=debug,
+            language=language,
+        )
 
     async def run_import(
         request: Request,
@@ -402,6 +418,17 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
     ) -> dict[str, object]:
         return analytics_from(request).skill_gaps(department, role, grade)
 
+    @application.get("/hr/skill-gaps/{skill_id}/employees", tags=["hr"])
+    def hr_skill_gap_employees(
+        skill_id: str,
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+    ) -> dict[str, object]:
+        try:
+            return analytics_from(request).employees_for_skill_gap(skill_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=f"Skill {skill_id} not found") from exc
+
     @application.get("/hr/no-next-step", tags=["hr"])
     def hr_no_next_step(
         request: Request,
@@ -433,6 +460,56 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
             )
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @application.get("/hr/events/{event_id}", tags=["hr"])
+    def hr_event_detail(
+        event_id: str,
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+    ) -> dict[str, object]:
+        event = store_from(request).dataset.indexes.events_by_id.get(event_id)
+        if event is None:
+            raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
+        return event.model_dump(mode="json")
+
+    @application.post("/hr/events", tags=["hr"], status_code=201)
+    def hr_create_company_event(
+        payload: CreateCompanyEventRequest,
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+    ) -> dict[str, object]:
+        store = store_from(request)
+        dataset = store.dataset
+        sequence = 1
+        while f"EV_HR_{sequence:03d}" in dataset.indexes.events_by_id:
+            sequence += 1
+        event = Event(
+            event_id=f"EV_HR_{sequence:03d}",
+            title=payload.title,
+            description=payload.description,
+            type=payload.type,
+            format=payload.format,
+            duration_hours=payload.duration_hours,
+            mandatory=payload.mandatory,
+            target_roles=sorted({employee.role for employee in dataset.employees.employees}),
+            target_grades=list(Grade),
+            develops_skills=[],
+            prerequisites={},
+            upcoming_sessions=(
+                []
+                if payload.format == "self_paced"
+                else [payload.upcoming_session or dataset.skills.meta.as_of_date]
+            ),
+        )
+        report = store.import_data(
+            {"events": [event.model_dump(mode="json")]}, mode="add", dry_run=False
+        )
+        if report.errors:
+            raise HTTPException(status_code=422, detail=report.errors[0].message)
+        return {
+            **event.model_dump(mode="json"),
+            "applies_to": len(dataset.employees.employees),
+        }
 
     @application.get("/hr/dashboard", tags=["hr"])
     def hr_dashboard(

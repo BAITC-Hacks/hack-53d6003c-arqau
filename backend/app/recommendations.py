@@ -169,8 +169,16 @@ class RecommendationEngine:
         self.progress_service = SkillProgressService(dataset)
         self.as_of_date = dataset.skills.meta.as_of_date
 
-    def recommend(self, employee_id: str, *, debug: bool = False) -> EmployeeRecommendations:
+    def recommend(
+        self,
+        employee_id: str,
+        *,
+        debug: bool = False,
+        language: Literal["en", "ru", "kk"] | None = None,
+    ) -> EmployeeRecommendations:
         employee = self.dataset.indexes.employees_by_id[employee_id]
+        if language is not None and language != employee.preferred_language:
+            employee = employee.model_copy(update={"preferred_language": language})
         progress = self.progress_service.calculate(employee_id)
         history = self.dataset.indexes.history_by_employee.get(employee_id, ())
         effective_levels = {item.skill_id: item.effective_level for item in progress.skills}
@@ -193,7 +201,12 @@ class RecommendationEngine:
                 candidates.append(candidate)
 
         recommendations = self._select_diverse(candidates, employee, progress)
-        blocked_gaps = self._blocked_gaps(progress, candidates, rejected)
+        blocked_gaps = self._blocked_gaps(
+            progress,
+            candidates,
+            rejected,
+            employee.preferred_language,
+        )
         status: Literal["OK", "NO_SUITABLE_ACTION"] = (
             "OK" if recommendations else "NO_SUITABLE_ACTION"
         )
@@ -764,6 +777,7 @@ class RecommendationEngine:
         progress: EmployeeProgress,
         candidates: list[_Candidate],
         rejected: list[RejectedEvent],
+        language: Literal["en", "ru", "kk"],
     ) -> list[BlockedGap]:
         candidates_by_id = {candidate.event.event_id: candidate for candidate in candidates}
         rejected_by_id = {item.event_id: item for item in rejected}
@@ -806,17 +820,17 @@ class RecommendationEngine:
                     target_level=gap.target_level,
                     critical=gap.critical,
                     blocking_reasons=reasons,
-                    suggestion=self._blocked_gap_suggestion(
-                        progress.employee_id,
-                        gap,
-                    ),
+                    suggestion=self._blocked_gap_suggestion(gap, language),
                 )
             )
         blocked.sort(key=lambda item: (-int(item.critical), item.name))
         return blocked
 
-    def _blocked_gap_suggestion(self, employee_id: str, gap: SkillProgress) -> str:
-        language = self.dataset.indexes.employees_by_id[employee_id].preferred_language
+    def _blocked_gap_suggestion(
+        self,
+        gap: SkillProgress,
+        language: Literal["en", "ru", "kk"],
+    ) -> str:
         if language == "ru":
             return (
                 f"В каталоге нет активности, которая может повысить {gap.name} с "

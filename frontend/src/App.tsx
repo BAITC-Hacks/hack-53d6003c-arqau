@@ -31,9 +31,10 @@ export default function App(){
 }
 
 function Login({onLogin}:{onLogin:(s:Session)=>void}){
+  const navigate=useNavigate()
   const [role,setRole]=useState<'employee'|'hr'>('employee'),[items,setItems]=useState<PickerEmployee[]>([]),[search,setSearch]=useState(''),[selected,setSelected]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false)
   useEffect(()=>{api.picker(search).then(r=>{setItems(r.items);setSelected(v=>v||r.items.find(x=>x.employee_id==='E0028')?.employee_id||r.items[0]?.employee_id||'')}).catch(e=>setError(e.message))},[search])
-  const submit=async()=>{setBusy(true);setError('');try{const r=await api.login(role,role==='employee'?selected:undefined);onLogin({token:r.access_token,role:r.role,employeeId:r.employee_id})}catch(e){setError((e as Error).message)}finally{setBusy(false)}}
+  const submit=async()=>{setBusy(true);setError('');try{const r=await api.login(role,role==='employee'?selected:undefined);onLogin({token:r.access_token,role:r.role,employeeId:r.employee_id});navigate(r.role==='hr'?'/hr':'/')}catch(e){setError((e as Error).message)}finally{setBusy(false)}}
   return <main className="login-page"><section className="login-card">
     <div className="login-brand"><BrandMark/><div><b>Career Quest</b><span>Every next step, explained.</span></div></div>
     <div><span className="eyebrow">DEMO ACCESS</span><h1>Build a career path that moves with you.</h1><p>Explore skill evidence, suitable development activities and career readiness — without rankings or guesswork.</p></div>

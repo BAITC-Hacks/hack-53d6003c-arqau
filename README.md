@@ -62,7 +62,15 @@ Hour 2 endpoints:
 - `POST /admin/reset` - restore the original startup dataset
 - `POST /auth/demo-login` - issue a signed employee or HR demo token
 - `GET /auth/demo-employees` - public synthetic-identity picker for demo login
-- `GET /hr/status` - minimal HR-only access check (analytics arrive in the next step)
+- `GET /hr/status` - HR-only access check
+- `GET /hr/skill-gaps` - aggregated lagging skills with department/role/grade filters
+- `GET /hr/no-next-step` - employees blocked by the catalog or without a suitable action
+- `GET /hr/participation` - event outcomes, completion, scores, feedback, and assignment source
+- `GET /hr/dashboard` - HR KPI summary
+- `GET /hr/heatmap`, `/hr/trend`, `/hr/pipeline` - visualization-ready aggregates
+- `GET /hr/opportunity-gaps` - blocked catalog gaps grouped by skill and target
+- `GET /hr/support-signals` - factual, supportive engagement patterns
+- `GET /employees/{employee_id}/journey` - private progress and activity rhythm
 - `GET /career/requirements?role=...&grade=...` - role/grade requirements
 
 Progress keeps formal assessment separate from later development:
@@ -221,6 +229,35 @@ administrative routes. Current HR responses contain structured employee and
 activity data only; private Career AI chat and self-reported capacity are not
 part of any HR response.
 
+## HR analytics and support signals
+
+`AnalyticsService` and `EngagementSignalService` calculate every response from
+the current `DataStore` snapshot, so imports, completions, and resets appear on
+the next request. HR people-oriented endpoints use employee IDs and initials,
+not full names; employee journey data is self-only.
+
+Skill gaps use each employee's resolved career target and effective levels.
+No-next-step includes both `NO_SUITABLE_ACTION` employees and employees whose
+critical target gaps are all blocked. Opportunity gaps group those blocked
+skills by target role, grade, current level, and required level, framing them as
+L&D catalog issues rather than employee failures.
+
+Support thresholds live together in `ANALYTICS_THRESHOLDS`:
+
+- active/recent window: 90 days before the dataset snapshot;
+- participation drop: at least 6 non-mandatory baseline records and a recent
+  monthly rate below 50% of that prior 12-month rate;
+- repeated friction: at least 2 no-show, dropped, or declined records of the
+  same status in the last 12 months;
+- re-engaged: at most 1 baseline record and at least 2 recent records;
+- mandatory overdue and missing relevant opportunities stay separate.
+
+Signals state only observed counts and shared formats/types. Every signal says
+the reason is unknown and suggests a supportive response; the service never
+diagnoses motivation or labels performance. The employee journey shows only the
+logged-in employee's post-review evidence and monthly rhythm and states that a
+break does not reset progress.
+
 Example health response:
 
 ```json
@@ -269,3 +306,5 @@ The backend suite verifies:
 - duplicate completion protection and recurring EV_036 behavior.
 - public health plus HMAC token validation and clear 401/403 responses;
 - employee self-only access and HR-only directory, import, admin, and HR routes.
+- HR gap, participation, dashboard, heatmap, trend, pipeline, and catalog-opportunity aggregates;
+- every support-signal rule, supportive-language guardrails, live no-next-step updates, and private journeys.

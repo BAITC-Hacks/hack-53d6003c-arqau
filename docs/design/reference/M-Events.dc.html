@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Events — mobile</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#122033;background:#F2F6F8}
+a{color:#0B5F8A;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 1300px; box-sizing: border-box; background: #F2F6F8; position: relative; display: flex; flex-direction: column;">
+<header style="padding: 20px 20px 8px; display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<h1 style="margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em;">Events</h1>
+<button style="height: 40px; padding: 0 14px; border: 1px solid #E1E8EE; border-radius: 999px; background: #FFFFFF; color: #122033; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h12M4 8h8M6 12h4"></path></svg>Filters</button>
+</div>
+<label style="height: 46px; box-sizing: border-box; border-radius: 14px; background: #FFFFFF; border: 1px solid #E1E8EE; padding: 0 14px; display: flex; align-items: center; gap: 10px;">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#5A6B7D" stroke-width="1.6"><circle cx="7" cy="7" r="5"></circle><path d="M11 11 L14 14"></path></svg>
+<input placeholder="Search events or skills" style="flex-grow: 1; border: none; outline: none; font-family: inherit; font-size: 14px; background: transparent;">
+</label>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 999px; background: #FFFFFF; border: 1px solid #E1E8EE;">
+<button style="height: 38px; border: none; border-radius: 999px; background: #122033; color: #FFFFFF; font-size: 14px; font-weight: 600;">For you</button>
+<button style="height: 38px; border: none; border-radius: 999px; background: transparent; color: #5A6B7D; font-size: 14px;">Explore</button>
+<button style="height: 38px; border: none; border-radius: 999px; background: transparent; color: #5A6B7D; font-size: 14px;">Required · 1</button>
+</div>
+<div style="display: flex; gap: 8px; overflow: hidden;">
+<button style="height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid #0A6F8F; background: #E7F2F5; color: #0A5C75; font-size: 13px; font-weight: 500; white-space: nowrap;">For my goal</button>
+<button style="height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid #E1E8EE; background: #FFFFFF; color: #5A6B7D; font-size: 13px; white-space: nowrap;">Under 1 hour</button>
+<button style="height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid #E1E8EE; background: #FFFFFF; color: #5A6B7D; font-size: 13px; white-space: nowrap;">Online</button>
+<button style="height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid #E1E8EE; background: #FFFFFF; color: #5A6B7D; font-size: 13px; white-space: nowrap;">Mentorship</button>
+</div>
+</header>
+
+<main style="padding: 12px 20px 100px; display: flex; flex-direction: column; gap: 14px;">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #5A6B7D;">RECOMMENDED FOR YOUR SENIOR GOAL</span>
+<sc-for list="{{events}}" as="e" hint-placeholder-count="3">
+<div style="background: #FFFFFF; border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 16px rgba(18,32,51,0.05);">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<span style="{{e.matchStyle}}">{{e.match}}</span>
+<span style="font-size: 13px; color: #5A6B7D;">{{e.when}}</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px;">
+<span style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">{{e.title}}</span>
+<span style="font-size: 13px; color: #5A6B7D;">{{e.meta}}</span>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<span style="font-size: 12px; font-weight: 500; padding: 5px 10px; border-radius: 999px; background: #E6F3F0; color: #00664B;">{{e.dev}}</span>
+<button style="height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #CFE3DC; background: #FFFFFF; color: #00664B; font-size: 14px; font-weight: 600;">Add to plan</button>
+</div>
+</div>
+</sc-for>
+
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #5A6B7D; margin-top: 8px;">REQUIRED</span>
+<div style="background: #FFFFFF; border: 1px solid #E1E8EE; border-radius: 20px; padding: 16px 18px; display: flex; align-items: center; gap: 12px;">
+<svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#5A6B7D" stroke-width="1.6"><path d="M11 2 L18 5 V10 C18 15 11 19 11 19 C11 19 4 15 4 10 V5 Z"></path></svg>
+<div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 15px; font-weight: 600;">Information Security Annual</span><span style="font-size: 12px; color: #5A6B7D;">30 min · Online · due Oct 15</span></div>
+<span style="font-size: 13px; font-weight: 600; color: #0B5F8A;">Start</span>
+</div>
+</main>
+
+<nav style="position: absolute; left: 0; right: 0; bottom: 0; height: 76px; box-sizing: border-box; padding: 6px 8px 14px; background: #FFFFFF; border-top: 1px solid #E1E8EE; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); font-size: 11px;">
+<a href="M-Home.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5A6B7D;"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10 L11 3 L19 10 V19 H3 Z"></path></svg>Home</a>
+<a href="M-Growth.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5A6B7D;"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M11 2 L19 6.5 V15.5 L11 20 L3 15.5 V6.5 Z"></path><path d="M11 7 L15 9.5 V13 L11 15 L7 13 V9.5 Z"></path></svg>Growth</a>
+<a href="M-Path.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5A6B7D;"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="4" r="2"></circle><circle cx="11" cy="11" r="2"></circle><circle cx="11" cy="18" r="2"></circle><path d="M11 6v3M11 13v3"></path></svg>Path</a>
+<a href="M-Events.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #0A6F8F; font-weight: 600;"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="16" height="15" rx="3"></rect><path d="M3 9h16M8 2v4M14 2v4"></path></svg>Events</a>
+<a href="M-AI.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5B4DB3;"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M11 3v5M11 14v5M3 11h5M14 11h5"></path><circle cx="11" cy="11" r="2" fill="currentColor"></circle></svg>AI</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1300}}'>
+class Component extends DCLogic {
+renderVals() {
+const strong = 'font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: #EEEBFA; color: #5B4DB3;';
+const good = 'font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: #F2F6F8; color: #5A6B7D;';
+const events = [
+{ match: 'Strong match', matchStyle: strong, when: 'Mon, Sep 28 · 15:00', title: 'System Design Case Lab', meta: 'Workshop · 45 min · Offline · suitable up to L3', dev: 'System Design +1' },
+{ match: 'Strong match', matchStyle: strong, when: 'Fri, Oct 2 · 16:00', title: 'Presentation Clinic', meta: 'Small group of 6 · 90 min · Offline', dev: 'Communication +1' },
+{ match: 'Good match', matchStyle: good, when: 'Flexible', title: 'Architecture Mentoring', meta: '2 sessions · 1:1 with a Senior architect', dev: 'System Design +1' }
+];
+return { events };
+}
+}
+</script>
+</body>
+</html>

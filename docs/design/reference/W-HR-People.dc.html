@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HR People</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#122033;background:#F2F6F8}
+a{color:#0B5F8A;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 1280px; height: 900px; box-sizing: border-box; background: #F2F6F8; display: flex;">
+<aside style="width: 232px; flex-shrink: 0; background: #FFFFFF; border-right: 1px solid #E1E8EE; box-sizing: border-box; padding: 24px 16px; display: flex; flex-direction: column; gap: 4px;">
+<div style="display: flex; align-items: center; gap: 10px; padding: 0 8px 24px;">
+<svg width="24" height="24" viewBox="0 0 22 22" fill="none" stroke="#0A6F8F" stroke-width="1.6"><path d="M11 2 L19 6.5 V15.5 L11 20 L3 15.5 V6.5 Z"></path><circle cx="11" cy="11" r="2.2" fill="#F1A400" stroke="none"></circle></svg>
+<span style="font-size: 16px; font-weight: 700;">Career Quest</span>
+</div>
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="5">
+<a href="{{n.href}}" style="{{n.style}}">{{n.label}}</a>
+</sc-for>
+<div style="flex-grow: 1;"></div>
+<a href="W-HR-Import.dc.html" style="height: 40px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px; font-size: 14px; color: #5A6B7D;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2 V10 M4.5 6.5 L8 10 L11.5 6.5 M2 13 H14"></path></svg>Import data</a>
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px; border-top: 1px solid #EEF3F6; margin-top: 8px;">
+<span style="width: 32px; height: 32px; border-radius: 50%; background: #E7F2F5; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #0A5C75;">DS</span>
+<div style="display: flex; flex-direction: column;"><span style="font-size: 13px; font-weight: 600;">Dana S.</span><span style="font-size: 12px; color: #5A6B7D;">HR Business Partner</span></div>
+</div>
+</aside>
+
+<div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+<header style="height: 64px; box-sizing: border-box; padding: 0 32px; display: flex; align-items: center; gap: 16px; background: #FFFFFF; border-bottom: 1px solid #E1E8EE;">
+<label style="width: 420px; height: 40px; box-sizing: border-box; border-radius: 12px; background: #F4F2FC; border: 1px solid #DEDAF3; padding: 0 12px; display: flex; align-items: center; gap: 8px;">
+<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="#5B4DB3" stroke-width="1.6"><path d="M10 2v4M10 14v4M2 10h4M14 10h4"></path><circle cx="10" cy="10" r="1.8" fill="#5B4DB3"></circle></svg>
+<input placeholder="Ask AI: why is Communication lagging in IT?" style="flex-grow: 1; border: none; outline: none; background: transparent; font-family: inherit; font-size: 14px;">
+</label>
+<div style="flex-grow: 1;"></div>
+<button style="height: 36px; padding: 0 12px; border: 1px solid #E1E8EE; border-radius: 10px; background: #FFFFFF; font-size: 13px; color: #5A6B7D;">View as: HR ▾</button>
+</header>
+
+<main style="flex-grow: 1; box-sizing: border-box; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 18px;">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<h1 style="margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.02em;">People</h1>
+<span style="font-size: 12px; padding: 4px 8px; border-radius: 6px; background: #EEF3F6; color: #5A6B7D;">Sample data</span>
+</div>
+<div style="display: flex; gap: 4px; border-bottom: 1px solid #E1E8EE;">
+<button style="height: 40px; padding: 0 14px; border: none; background: transparent; font-size: 14px; color: #5A6B7D;">All people · 1,240</button>
+<button style="height: 40px; padding: 0 14px; border: none; border-bottom: 2px solid #0A6F8F; background: transparent; font-size: 14px; font-weight: 600; color: #122033;">Support signals · 41</button>
+<button style="height: 40px; padding: 0 14px; border: none; background: transparent; font-size: 14px; color: #5A6B7D;">Opportunity gaps · 57</button>
+</div>
+<div style="display: flex; gap: 8px;">
+<button style="height: 36px; padding: 0 12px; border: 1px solid #E1E8EE; border-radius: 10px; background: #FFFFFF; font-size: 13px;">Department ▾</button>
+<button style="height: 36px; padding: 0 12px; border: 1px solid #E1E8EE; border-radius: 10px; background: #FFFFFF; font-size: 13px;">Grade ▾</button>
+<button style="height: 36px; padding: 0 12px; border: 1px solid #E1E8EE; border-radius: 10px; background: #FFFFFF; font-size: 13px;">Signal type ▾</button>
+</div>
+<div style="display: flex; gap: 16px; flex-grow: 1;">
+<div style="flex-grow: 1; background: #FFFFFF; border: 1px solid #E1E8EE; border-radius: 16px; padding: 8px; display: flex; flex-direction: column; gap: 2px;">
+<sc-for list="{{people}}" as="p" hint-placeholder-count="6">
+<button onClick="{{p.pick}}" style="{{p.row}}">
+<span style="width: 40px; height: 40px; border-radius: 50%; background: #EEF3F6; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #3E4E5E; flex-shrink: 0;">{{p.ini}}</span>
+<span style="width: 180px; display: flex; flex-direction: column; gap: 2px; text-align: left;"><span style="font-size: 14px; font-weight: 600; color: #122033;">{{p.ini}}</span><span style="font-size: 12px; color: #5A6B7D;">{{p.role}}</span></span>
+<span style="{{p.dot}}"></span>
+<span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; text-align: left;"><span style="font-size: 14px; color: #122033;">{{p.signal}}</span><span style="font-size: 12px; color: #5A6B7D;">{{p.type}}</span></span>
+<span style="font-size: 13px; font-weight: 600; color: #0B5F8A;">Context</span>
+</button>
+</sc-for>
+</div>
+
+<aside style="width: 360px; flex-shrink: 0; background: #FFFFFF; border: 1px solid #E1E8EE; border-radius: 16px; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; align-items: center; gap: 12px;">
+<span style="width: 44px; height: 44px; border-radius: 50%; background: #EEF3F6; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: #3E4E5E;">{{s.ini}}</span>
+<div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 16px; font-weight: 600;">{{s.ini}}</span><span style="font-size: 13px; color: #5A6B7D;">{{s.role}}</span></div>
+</div>
+<div style="border-radius: 12px; background: #F2F6F8; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px;">
+<span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: #5A6B7D;">WHY SURFACED</span>
+<span style="font-size: 13px; line-height: 1.45;">{{s.why}}</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 12px; font-weight: 600; color: #00664B;">What we know</span><span style="font-size: 13px; line-height: 1.45;">{{s.know}}</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 12px; font-weight: 600; color: #6E4E00;">What we don't know</span><span style="font-size: 13px; line-height: 1.45;">{{s.unknown}}</span></div>
+<div style="border-radius: 12px; background: #F7F6FC; border: 1px solid #DEDAF3; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px;">
+<span style="font-size: 12px; font-weight: 600; color: #5B4DB3;">Suggested approach · AI</span>
+<span style="font-size: 13px; line-height: 1.45;">{{s.approach}}</span>
+</div>
+<div style="flex-grow: 1;"></div>
+<div style="display: flex; gap: 8px;">
+<button style="flex-grow: 1; height: 44px; border: none; border-radius: 999px; background: #122033; color: #FFFFFF; font-size: 14px; font-weight: 600;">Plan a 1:1</button>
+<button style="height: 44px; padding: 0 16px; border: 1px solid #E1E8EE; border-radius: 999px; background: #FFFFFF; font-size: 14px; color: #3E4E5E;">Dismiss</button>
+</div>
+<span style="font-size: 11px; color: #5A6B7D; line-height: 1.4;">Patterns only, never motives. Employees' weekly check-ins and personal notes are never shown to HR.</span>
+</aside>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+navFor(active) {
+const items = [['Overview', 'W-HR-Overview.dc.html'], ['People', 'W-HR-People.dc.html'], ['Skills', 'W-HR-Skills.dc.html'], ['Events', 'W-HR-Events.dc.html'], ['Career Pipeline', '#']];
+return items.map(([label, href]) => ({ label, href, style: 'height: 40px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; font-size: 14px; ' + (label === active ? 'background: #E7F2F5; color: #0A5C75; font-weight: 600;' : 'color: #3E4E5E;') }));
+}
+constructor(p) { super(p); this.state = { sel: 0 }; }
+renderVals() {
+const nav = this.navFor('People');
+const P = [
+{ ini: 'A.K.', role: 'Backend Engineer · Middle · IT', signal: 'Participation below own baseline', type: 'Change · last 3 months', kind: 'change',
+  why: 'Activity dropped from about 3 per month to 1, compared with this person\'s own history, not with others.', know: '2 large-format events declined; readiness still rising (72%).', unknown: 'Why. Workload, format or timing are all possible.', approach: 'A low-pressure 1:1. Ask whether formats and timing work, rather than about missed events.' },
+{ ini: 'D.T.', role: 'Product Manager · Middle · Retail', signal: 'Declined 3 large-format sessions', type: 'Format pattern', kind: 'change',
+  why: 'Three declines in a row, all for sessions with 60+ seats.', know: 'Attended both small-group sessions offered in the same period.', unknown: 'Whether the format is the reason.', approach: 'Offer the small-group Presentation Clinic as an alternative.' },
+{ ini: 'M.S.', role: 'Data Analyst · Junior · Risk', signal: 'No suitable activity for skill gap', type: 'Supply gap · Data Modeling', kind: 'supply',
+  why: 'Critical gap in Data Modeling, but no current activity matches Junior level.', know: 'Asked Career AI for options twice.', unknown: 'Nothing about the person: this is a catalogue gap.', approach: 'Flag to L&D: 11 other Juniors share this gap.' },
+{ ini: 'G.N.', role: 'QA Engineer · Middle · IT', signal: 'Readiness unchanged for 2 cycles', type: 'Plateau', kind: 'change',
+  why: 'Senior readiness at 58% since March.', know: 'Completed 4 activities, all for skills already met.', unknown: 'Whether the career target is still the right one.', approach: 'Review the target together; Career AI can show nearby roles.' },
+{ ini: 'E.R.', role: 'Frontend Engineer · Middle · IT', signal: 'Registered, not verified at 2 events', type: 'Attendance pattern', kind: 'change',
+  why: 'Two registrations without a QR check-in in August.', know: 'Both events were on Fridays after 17:00.', unknown: 'Whether the person attended without checking in.', approach: 'No action needed yet. Watch for a repeat.' },
+{ ini: 'S.A.', role: 'HR Business Partner · Senior · HR', signal: 'Re-engaged after a quiet period', type: 'Positive change', kind: 'good',
+  why: '3 activities in September after a quiet summer.', know: 'Chose the Leadership track.', unknown: 'n/a', approach: 'Acknowledge the progress in the next check-in.' }
+];
+const dotColor = { change: '#F1A400', supply: '#1E4FA8', good: '#00815F' };
+const sel = this.state.sel;
+const people = P.map((x, i) => Object.assign({}, x, {
+  pick: () => this.setState({ sel: i }),
+  row: 'display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 12px; border: none; width: 100%; background: ' + (i === sel ? '#E7F2F5' : 'transparent') + ';',
+  dot: 'width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: ' + dotColor[x.kind] + ';'
+}));
+return { nav, people, s: P[sel] };
+}
+}
+</script>
+</body>
+</html>

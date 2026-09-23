@@ -5,3 +5,10 @@ __pycache__/
 *.py[cod]
 .DS_Store
 .env
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+frontend/*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts

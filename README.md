@@ -51,6 +51,40 @@ Open:
 - Health and dataset counts: <http://127.0.0.1:8000/health>
 - Interactive API documentation: <http://127.0.0.1:8000/docs>
 
+### Web app
+
+The Step 5 interface is a Vite + React + TypeScript + Tailwind application. It
+uses the FastAPI service for every employee, skill, event, progress,
+recommendation, journey, analytics, and import value; the design references in
+`docs/design/` are visual guidance only.
+
+Run the backend first, then the frontend in a second terminal:
+
+```bash
+make run
+cd frontend
+npm install
+npm run dev
+```
+
+Open <http://127.0.0.1:5173>. The demo login offers the live synthetic employee
+picker (including newly imported profiles) and the HR role. The Vite development
+server proxies `/api` to `http://127.0.0.1:8000`.
+
+Frontend verification:
+
+```bash
+cd frontend
+npm test
+npm run build
+```
+
+Employee routes are mobile-first: Home, Growth Web, Path, Events, and the
+structured Career AI explanation view. HR routes are desktop-first: Overview,
+People, Skills, Events, and the real dry-run/import flow. Completing an activity
+uses the API diff, refreshes progress and recommendations, and shows the actual
+readiness and skill changes. No QR flow or LLM call is included in Step 5.
+
 Hour 2 endpoints:
 
 - `GET /employees` - paginated employee directory

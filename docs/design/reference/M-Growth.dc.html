@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>My Growth — mobile</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#122033;background:#F2F6F8}
+a{color:#0B5F8A;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 1340px; box-sizing: border-box; background: #F2F6F8; position: relative; display: flex; flex-direction: column;">
+<header style="padding: 20px 20px 8px; display: flex; flex-direction: column; gap: 4px;">
+<h1 style="margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em;">My Growth</h1>
+<span style="font-size: 14px; color: #5A6B7D;">Toward Senior Backend Engineer</span>
+</header>
+
+<main style="padding: 12px 20px 100px; display: flex; flex-direction: column; gap: 16px;">
+<sc-if value="{{updated}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 16px; background: #FDF0CC;">
+<span style="width: 10px; height: 10px; border-radius: 50%; background: #F1A400; flex-shrink: 0;"></span>
+<span style="font-size: 14px; line-height: 1.4; color: #3D2C00;"><b>Just updated:</b> Case Lab verified. System Design moved closer to L3.</span>
+</div>
+</sc-if>
+
+<div style="background: #FFFFFF; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 4px 16px rgba(18,32,51,0.05);">
+<div style="display: flex; gap: 6px; flex-wrap: wrap;">
+<sc-for list="{{layers}}" as="l" hint-placeholder-count="4">
+<button onClick="{{l.toggle}}" aria-pressed="{{l.on}}" style="{{l.style}}">{{l.label}}</button>
+</sc-for>
+</div>
+<svg width="350" height="310" viewBox="0 0 350 310" fill="none" aria-label="Growth Web: assessed profile, development since review and Senior target">
+<polygon points="175.0,40.0 278.9,100.0 278.9,220.0 175.0,280.0 71.1,220.0 71.1,100.0" stroke="#E1E8EE"></polygon>
+<polygon points="175.0,64.0 258.1,112.0 258.1,208.0 175.0,256.0 91.9,208.0 91.9,112.0" stroke="#EEF3F6"></polygon>
+<polygon points="175.0,88.0 237.4,124.0 237.4,196.0 175.0,232.0 112.6,196.0 112.6,124.0" stroke="#EEF3F6"></polygon>
+<polygon points="175.0,112.0 216.6,136.0 216.6,184.0 175.0,208.0 133.4,184.0 133.4,136.0" stroke="#EEF3F6"></polygon>
+<path d="M175 160 L175 40 M175 160 L278.9 100 M175 160 L278.9 220 M175 160 L175 280 M175 160 L71.1 220 M175 160 L71.1 100" stroke="#EEF3F6"></path>
+<sc-if value="{{show.past}}" hint-placeholder-val="{{ false }}">
+<polygon points="175.0,97.6 212.4,138.4 216.6,184.0 175.0,222.4 148.0,175.6 133.4,136.0" stroke="#8A97A6" stroke-width="1.5" stroke-dasharray="1 4" stroke-linecap="round"></polygon>
+</sc-if>
+<sc-if value="{{show.assessed}}" hint-placeholder-val="{{ true }}">
+<polygon points="175.0,88.0 216.6,136.0 216.6,184.0 175.0,232.0 143.8,178.0 133.4,136.0" fill="#0A6F8F" fill-opacity="0.88"></polygon>
+</sc-if>
+<sc-if value="{{show.dev}}" hint-placeholder-val="{{ true }}">
+<polygon points="{{devPts}}" fill="#6FC3A6" fill-opacity="0.35" stroke="#00815F" stroke-width="1.5" stroke-dasharray="4 3"></polygon>
+</sc-if>
+<sc-if value="{{show.target}}" hint-placeholder-val="{{ true }}">
+<polygon points="175.0,88.0 237.4,124.0 237.4,196.0 175.0,232.0 133.4,184.0 133.4,136.0" stroke="#122033" stroke-width="1.8" stroke-dasharray="6 4"></polygon>
+<circle cx="237.4" cy="124" r="5" fill="#F1A400"></circle><circle cx="237.4" cy="196" r="5" fill="#F1A400"></circle>
+</sc-if>
+<text x="175" y="26" text-anchor="middle" font-size="12" fill="#122033" font-family="Inter, sans-serif">Technical</text>
+<text x="286" y="92" font-size="12" font-weight="600" fill="#122033" font-family="Inter, sans-serif">System</text>
+<text x="286" y="106" font-size="12" font-weight="600" fill="#122033" font-family="Inter, sans-serif">Design</text>
+<text x="286" y="228" font-size="12" font-weight="600" fill="#122033" font-family="Inter, sans-serif">Commu-</text>
+<text x="286" y="242" font-size="12" font-weight="600" fill="#122033" font-family="Inter, sans-serif">nication</text>
+<text x="175" y="300" text-anchor="middle" font-size="12" fill="#122033" font-family="Inter, sans-serif">Collaboration</text>
+<text x="64" y="228" text-anchor="end" font-size="12" fill="#122033" font-family="Inter, sans-serif">Leader-</text>
+<text x="64" y="242" text-anchor="end" font-size="12" fill="#122033" font-family="Inter, sans-serif">ship</text>
+<text x="64" y="98" text-anchor="end" font-size="12" fill="#122033" font-family="Inter, sans-serif">Business</text>
+</svg>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; font-size: 12px; color: #5A6B7D;">
+<span style="display: flex; align-items: center; gap: 8px;"><span style="width: 14px; height: 10px; border-radius: 3px; background: #0A6F8F;"></span>Assessed (May)</span>
+<span style="display: flex; align-items: center; gap: 8px;"><span style="width: 14px; height: 10px; border-radius: 3px; background: #B7E1D3; border: 1px dashed #00815F; box-sizing: border-box;"></span>Since review (estimate)</span>
+<span style="display: flex; align-items: center; gap: 8px;"><span style="width: 14px; border-top: 2px dashed #122033;"></span>Senior target</span>
+<span style="display: flex; align-items: center; gap: 8px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #F1A400;"></span>Critical gap</span>
+</div>
+</div>
+
+<div style="background: #FFFFFF; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 4px 16px rgba(18,32,51,0.05);">
+<div style="display: flex; justify-content: space-between; align-items: baseline;"><span style="font-size: 16px; font-weight: 600;">Readiness over time</span><span style="font-size: 13px; font-weight: 600; color: #00664B;">{{trendLabel}}</span></div>
+<svg width="310" height="90" viewBox="-4 10 368 84" fill="none" aria-label="Readiness trend">
+<path d="M0 66 L51 59 L103 54 L154 54 L206 43 L257 34 L309 34 L360 24" stroke="#0A6F8F" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"></path>
+<sc-if value="{{updated}}" hint-placeholder-val="{{ false }}"><path d="M360 24 L360 18" stroke="#00815F" stroke-width="3" stroke-linecap="round"></path><circle cx="360" cy="18" r="6" fill="#F1A400" stroke="#FFFFFF" stroke-width="2"></circle></sc-if>
+<sc-if value="{{notUpdated}}" hint-placeholder-val="{{ true }}"><circle cx="360" cy="24" r="6" fill="#F1A400" stroke="#FFFFFF" stroke-width="2"></circle></sc-if>
+</svg>
+<div style="display: flex; justify-content: space-between; font-size: 12px; color: #5A6B7D;"><span>Jan · 48%</span><span>May assessment</span><span>Now · {{ready}}</span></div>
+</div>
+
+<div style="background: #FFFFFF; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 4px 16px rgba(18,32,51,0.05);">
+<span style="font-size: 16px; font-weight: 600;">Skill by skill</span>
+<sc-for list="{{skills}}" as="s" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 6px;">
+<div style="display: flex; justify-content: space-between; font-size: 14px;"><span style="{{s.nameStyle}}">{{s.name}}</span><span style="font-size: 13px; color: #5A6B7D;">{{s.text}}</span></div>
+<div style="position: relative; height: 10px; border-radius: 5px; background: #EEF3F6;">
+<div style="{{s.devStyle}}"></div><div style="{{s.asStyle}}"></div><div style="{{s.tgtStyle}}"></div>
+</div>
+</div>
+</sc-for>
+</div>
+
+<div style="background: #FFFFFF; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 16px rgba(18,32,51,0.05);">
+<span style="font-size: 16px; font-weight: 600;">Recent evidence</span>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #EEF3F6;"><div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 14px; font-weight: 500;">Architecture Lab</span><span style="font-size: 12px; color: #5A6B7D;">Aug 14 · QR verified</span></div><span style="font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 999px; background: #E6F3F0; color: #00664B;">System Design</span></div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0;"><div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 14px; font-weight: 500;">System Design Workshop</span><span style="font-size: 12px; color: #5A6B7D;">Jun 12 · completed</span></div><span style="font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 999px; background: #E6F3F0; color: #00664B;">System Design</span></div>
+<span style="font-size: 12px; color: #5A6B7D; line-height: 1.4;">Activities move the estimate. The formal level changes only at reassessment.</span>
+</div>
+</main>
+
+<nav style="position: absolute; left: 0; right: 0; bottom: 0; height: 76px; box-sizing: border-box; padding: 6px 8px 14px; background: #FFFFFF; border-top: 1px solid #E1E8EE; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); font-size: 11px;">
+<a href="M-Home.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5A6B7D;"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 10 L11 3 L19 10 V19 H3 Z"></path></svg>Home</a>
+<a href="M-Growth.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #0A6F8F; font-weight: 600;"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 2 L19 6.5 V15.5 L11 20 L3 15.5 V6.5 Z"></path><path d="M11 7 L15 9.5 V13 L11 15 L7 13 V9.5 Z"></path></svg>Growth</a>
+<a href="M-Path.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5A6B7D;"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="4" r="2"></circle><circle cx="11" cy="11" r="2"></circle><circle cx="11" cy="18" r="2"></circle><path d="M11 6v3M11 13v3"></path></svg>Path</a>
+<a href="M-Events.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5A6B7D;"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="16" height="15" rx="3"></rect><path d="M3 9h16M8 2v4M14 2v4"></path></svg>Events</a>
+<a href="M-AI.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #5B4DB3;"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M11 3v5M11 14v5M3 11h5M14 11h5"></path><circle cx="11" cy="11" r="2" fill="currentColor"></circle></svg>AI</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"updated":{"editor":"boolean","default":false},"$preview":{"width":390,"height":1340}}'>
+class Component extends DCLogic {
+constructor(p) { super(p); this.state = { assessed: true, dev: true, target: true, past: false }; }
+renderVals() {
+const s = this.state;
+const updated = !!this.props.updated;
+const defs = [['assessed', 'Assessed'], ['dev', 'Since review'], ['target', 'Target'], ['past', '6 months ago']];
+const layers = defs.map(([k, label]) => ({
+label, on: s[k] ? 'true' : 'false',
+toggle: () => this.setState({ [k]: !s[k] }),
+style: 'height: 36px; padding: 0 12px; border-radius: 999px; font-size: 13px; font-weight: 500; ' + (s[k] ? 'background: #122033; color: #FFFFFF; border: 1px solid #122033;' : 'background: #FFFFFF; color: #5A6B7D; border: 1px solid #E1E8EE;')
+}));
+const sd = updated ? 2.9 : 2.6;
+const data = [['Technical Expertise', 3, 3.2, 3, false], ['System Design', 2, sd, 3, true], ['Communication', 2, 2.2, 3, true], ['Collaboration', 3, 3.1, 3, false], ['Leadership', 1.5, 1.7, 2, false], ['Business Knowledge', 2, 2.3, 2, false]];
+const pct = (v) => (v / 5 * 100).toFixed(1) + '%';
+const skills = data.map(([name, a, d, t, crit]) => ({
+name: name,
+nameStyle: crit ? 'font-weight: 600;' : 'font-weight: 400;',
+text: (a >= t ? 'L' + a + ' · met' : 'L' + a + ' → L' + t) + (crit ? ' · critical' : ''),
+devStyle: 'position: absolute; left: 0; top: 0; height: 10px; border-radius: 5px; background: #B7E1D3; width: ' + pct(d) + ';',
+asStyle: 'position: absolute; left: 0; top: 0; height: 10px; border-radius: 5px; background: #0A6F8F; width: ' + pct(a) + ';',
+tgtStyle: 'position: absolute; top: -4px; width: 2px; height: 18px; background: #122033; left: ' + pct(t) + ';'
+}));
+return {
+layers, show: s, skills, updated, notUpdated: !updated,
+ready: updated ? '76%' : '72%', trendLabel: updated ? '+28 this year' : '+24 this year',
+devPts: updated ? '175.0,83.2 235.3,125.2 220.7,186.4 175.0,234.4 139.7,180.4 127.2,132.4' : '175.0,83.2 229.0,128.8 220.7,186.4 175.0,234.4 139.7,180.4 127.2,132.4'
+};
+}
+}
+</script>
+</body>
+</html>

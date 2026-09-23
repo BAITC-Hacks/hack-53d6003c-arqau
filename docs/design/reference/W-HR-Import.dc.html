@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Import data</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#122033;background:#3A4656}
+a{color:#0B5F8A;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 1280px; height: 900px; box-sizing: border-box; background: #3A4656; display: flex; align-items: center; justify-content: center;">
+<section style="width: 640px; background: #FFFFFF; border-radius: 24px; padding: 28px 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 24px 60px rgba(0,0,0,0.25);">
+<div style="display: flex; justify-content: space-between; align-items: flex-start;">
+<div style="display: flex; flex-direction: column; gap: 4px;"><h1 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em;">Import data</h1><span style="font-size: 14px; color: #5A6B7D;">Employees, assessments and activity history</span></div>
+<a href="W-HR-Overview.dc.html" aria-label="Close" style="width: 40px; height: 40px; border-radius: 50%; background: #F2F6F8; display: flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#122033" stroke-width="1.8"><path d="M2 2 L12 12 M12 2 L2 12"></path></svg></a>
+</div>
+<div style="border: 2px dashed #B5C3CF; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; align-items: center; gap: 10px; background: #F7F9FA;">
+<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0A6F8F" stroke-width="1.6"><path d="M12 16 V4 M7 9 L12 4 L17 9 M4 16 V19 A1 1 0 0 0 5 20 H19 A1 1 0 0 0 20 19 V16"></path></svg>
+<span style="font-size: 15px; font-weight: 500;">Drop CSV or JSON files here</span>
+<div style="display: flex; gap: 8px;">
+<button style="height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #0A6F8F; background: #FFFFFF; color: #0A5C75; font-size: 14px; font-weight: 600;">Choose files</button>
+<button style="height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #E1E8EE; background: #FFFFFF; color: #3E4E5E; font-size: 14px;">Use sample dataset</button>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: #5A6B7D;">DETECTED</span>
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; border: 1px solid #E1E8EE;">
+<span style="width: 22px; height: 22px; border-radius: 50%; background: #00815F; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#FFFFFF" stroke-width="2.2"><path d="M2.5 6.5 L5 9 L9.5 3.5"></path></svg></span>
+<span style="flex-grow: 1; font-size: 14px; font-weight: 500;">employees.csv</span><span style="font-size: 13px; color: #5A6B7D;">1,240 rows · 8 columns mapped</span>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; border: 1px solid #E1E8EE;">
+<span style="width: 22px; height: 22px; border-radius: 50%; background: #00815F; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#FFFFFF" stroke-width="2.2"><path d="M2.5 6.5 L5 9 L9.5 3.5"></path></svg></span>
+<span style="flex-grow: 1; font-size: 14px; font-weight: 500;">assessments.csv</span><span style="font-size: 13px; color: #5A6B7D;">7,380 skill ratings</span>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; border: 1px solid #F3DC9E; background: #FFF8E6;">
+<span style="width: 22px; height: 22px; border-radius: 50%; background: #F1A400; display: flex; align-items: center; justify-content: center; color: #FFFFFF; font-size: 13px; font-weight: 700;">!</span>
+<span style="flex-grow: 1; font-size: 14px; font-weight: 500;">activity_history.json</span><span style="font-size: 13px; color: #6E4E00;">1 column needs mapping</span>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: #F2F6F8;">
+<span style="font-size: 13px; color: #3E4E5E; flex-grow: 1;">Map <b>"event_attended"</b> to</span>
+<button style="height: 36px; padding: 0 12px; border: 1px solid #E1E8EE; border-radius: 10px; background: #FFFFFF; font-size: 13px;">QR verified participation ▾</button>
+</div>
+<span style="font-size: 12px; color: #5A6B7D; line-height: 1.45;">Only fields listed in the data dictionary are imported. Nothing is inferred about wellbeing or motivation.</span>
+<div style="display: flex; justify-content: flex-end; gap: 10px;">
+<a href="W-HR-Overview.dc.html" style="height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid #E1E8EE; display: flex; align-items: center; font-size: 14px; color: #3E4E5E;">Cancel</a>
+<a href="W-HR-Overview.dc.html" style="height: 44px; padding: 0 22px; border-radius: 999px; background: #122033; display: flex; align-items: center; font-size: 14px; font-weight: 600; color: #FFFFFF;">Import 3 files</a>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

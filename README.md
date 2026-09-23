@@ -2,7 +2,7 @@
 
 Career Quest is an explainable employee-development platform for the HackAlem AI Halyk Bank track. Employees often cannot see which action will actually move them toward a career goal, while HR sees participation data without a reliable view of blocked skills or catalog gaps. Career Quest turns assessed skills, goals, learning history, and the event catalog into transparent next actions and live workforce insights.
 
-The solution is a working employee and HR web app backed by deterministic services: it resolves a career target, keeps formal assessment separate from estimated development, ranks useful activities with inspectable factors, shows mandatory work separately, recalculates after completion, and aggregates privacy-conscious HR signals. No LLM is required for the core decision path.
+The solution is a working employee and HR web app backed by deterministic services: it resolves a career target, keeps formal assessment separate from estimated development, ranks useful activities with inspectable factors, shows mandatory work separately, recalculates after completion, and aggregates privacy-conscious HR signals. An OpenAI-powered Career AI and HR insight layer explains these results in natural language; no LLM is required for the core decision path.
 
 ## Current architecture
 
@@ -102,11 +102,12 @@ npm run build
 ```
 
 Employee routes are mobile-first: Home, Growth Web, Path, Events, and the
-structured Career AI explanation view. HR routes are desktop-first: Overview,
+Career AI chat. HR routes are desktop-first: Overview,
 People, Skills, Events, and the real dry-run/import flow. Completing an activity
 uses the API diff, refreshes progress and recommendations, and shows the actual
-readiness and skill changes. QR verification and generative AI are intentionally
-not part of this build; the demo uses employee self-report and deterministic text.
+readiness and skill changes. HR also has **AI settings** (paste the OpenAI key,
+generate insights) and an **Ask AI** bar. QR verification is not part of this build;
+the demo uses employee self-report.
 
 Hour 2 endpoints:
 
@@ -363,14 +364,48 @@ Example health response:
 
 ## AI layer and fallback
 
-The current Career AI screen is an explainability view, not a generative model.
-It renders the same structured factors, expected effects, blocked-gap reasons,
-and localized templates returned by the recommendation API. This makes the full
-demo work offline and ensures an unavailable provider can never block a career
-recommendation. `OPENAI_API_KEY` and `OPENAI_MODEL` are reserved in
-`.env.example` for a later, optional natural-language layer; no key or external
-AI call is used in this build, and an eventual model must explain structured
-results rather than make eligibility or ranking decisions.
+The deterministic engine decides; the LLM only explains and converses
+(`backend/app/ai.py`).
+
+**Enable it** in one of two ways:
+
+1. **In the UI:** sign in as HR → **AI settings** → paste the OpenAI API key →
+   **Save key**. The key is kept in server memory only, is never returned by any
+   endpoint (only the last 4 characters are shown), and is lost on restart.
+2. **Via environment:** put `OPENAI_API_KEY=sk-...` (and optionally
+   `OPENAI_MODEL`, default `gpt-4.1-mini`) in `.env` next to `compose.yaml`.
+   `docker compose up --build` and `make run` both read it.
+
+**Without a key everything still works:** every AI endpoint answers with
+deterministic, localized templates built from the same data (`mode: "template"`).
+The same fallback is used when OpenAI fails, exceeds the 8-second deadline, or
+returns an ungrounded answer.
+
+**Employee Career AI** — `POST /ai/employee/chat` (employee token, own profile only)
+
+- Function calling over read-only tools bound to the logged-in employee (the
+  model cannot choose whose data to read): `get_progress`, `get_recommendations`,
+  `get_alternatives(skill)`, `simulate_completion(event_id)` (dry run, saves
+  nothing), `get_journey`.
+- Grounding check: any activity the answer references must come from tool
+  results; otherwise the answer is discarded and the template is returned.
+- Answers in the selected UI language (en/ru/kk) and returns `actions`
+  (Add to plan / Open event) and `sources` (shown under "Why this answer?").
+- Handles: "What should I focus on this month?", "Why am I not ready for
+  Senior?", "Give me something small this week", "Why was this recommended?",
+  "What happens if I complete this?", "Another way to improve communication".
+- Chat text is not stored on the server and is never sent to HR endpoints.
+
+**HR insights** — `POST /ai/hr/insights` and `POST /ai/hr/query` (HR only)
+
+- Input is de-identified aggregates only (skill gaps, catalog gaps, no-next-step
+  counts, participation by event, signal counts); no names, IDs or chat text.
+- Each insight has observation, evidence, "we don't know", suggested supportive
+  action and a link to the supporting HR screen. Answers containing numbers that
+  are not in the analytics are rejected and replaced by templates.
+
+**Key management** — `GET /ai/status` (any signed-in user), `POST /ai/config`
+and `DELETE /ai/config` (HR only).
 
 ## Privacy and data policy
 
@@ -385,7 +420,9 @@ results rather than make eligibility or ranking decisions.
 - Recommendations and support signals are decision support, not performance
   ratings. The system records factual evidence, never diagnoses motivation, and
   keeps formal assessed levels distinct from estimates inferred from activities.
-- The core app sends no dataset content to an external AI service.
+- Without an API key no data leaves the server. With a key, the employee's own
+  progress/recommendation data (no name) is sent to OpenAI for their own chat,
+  and HR insights send only de-identified aggregates.
 
 ## Demo script
 
@@ -402,14 +439,17 @@ results rather than make eligibility or ranking decisions.
 5. In **Import**, dry-run a new sample `employees.json` plus optional history,
    review validation, import, then sign in as that employee. Repeat **Why this?**
    and completion to demonstrate that nothing was scripted for E0028.
-6. Use **Reset demo data** before repeating the presentation.
+6. As employee, open **AI** and ask "Why am I not ready for Senior?" and "What
+   happens if I complete the top recommendation?". Show "Why this answer?" and
+   the mode badge (AI model vs rule-based).
+7. As HR, open **AI settings**, paste the key, click **Generate insights**, and
+   ask a question in the **Ask AI** bar.
+8. Use **Reset demo data** before repeating the presentation.
 
 ## Limitations and next steps
 
 - QR attendance verification is deferred; the current demo supports employee
   self-report and HR-confirmed activity updates through the API.
-- Generative Career AI is optional and deferred. Deterministic localized
-  explanations remain the safe fallback.
 - Runtime imports are in-memory by design; a production deployment would add a
   transactional database, SSO, audit logs, secrets management, and background
   event ingestion.

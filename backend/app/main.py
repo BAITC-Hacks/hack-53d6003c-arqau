@@ -12,6 +12,18 @@ from typing import Annotated, Literal
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse
 
+from .ai import (
+    AIAnswer,
+    AIConfig,
+    AIConfigUpdate,
+    AIStatus,
+    EmployeeAIService,
+    EmployeeChatRequest,
+    HRInsightService,
+    HRInsightsResponse,
+    HRQueryRequest,
+    LLMClient,
+)
 from .analytics import AnalyticsService, EngagementSignalService
 from .auth import (
     AuthError,
@@ -54,6 +66,20 @@ def configured_extra_data_dir() -> Path | None:
 def configured_secret() -> str:
     """Use a stable configured secret, or an ephemeral secret for this process."""
     return os.getenv("CAREER_QUEST_SECRET") or secrets.token_urlsafe(32)
+
+
+def load_env_file(path: Path) -> None:
+    """Load KEY=VALUE lines from .env without overriding real environment variables."""
+    if not path.is_file():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key, value = key.strip(), value.strip().strip('"').strip("'")
+        if key and value and key not in os.environ:
+            os.environ[key] = value
 
 
 def store_from(request: Request) -> DataStore:
@@ -161,13 +187,22 @@ async def parse_import_request(request: Request) -> dict[str, object]:
     return {aliases.get(key, key): value for key, value in raw.items()}
 
 
-def create_app(data_dir: str | Path | None = None) -> FastAPI:
+def create_app(
+    data_dir: str | Path | None = None,
+    *,
+    ai_config: AIConfig | None = None,
+    llm_client: LLMClient | None = None,
+) -> FastAPI:
+    if data_dir is None:
+        load_env_file(PROJECT_ROOT / ".env")
     source_dir = Path(data_dir) if data_dir is not None else configured_data_dir()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         app.state.store = DataStore(source_dir, configured_extra_data_dir())
         app.state.auth = AuthService(configured_secret())
+        app.state.ai_config = ai_config or AIConfig.from_env()
+        app.state.llm_client = llm_client
         for warning in app.state.store.dataset.warnings:
             logger.warning("Dataset warning: %s", warning)
         yield
@@ -487,6 +522,62 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
         if employee_id not in store_from(request).dataset.indexes.employees_by_id:
             raise HTTPException(status_code=404, detail=f"Employee {employee_id} not found")
         return analytics_from(request).journey(employee_id)
+
+    @application.get("/ai/status", tags=["ai"], response_model=AIStatus)
+    def ai_status(
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(authenticated_principal)],
+    ) -> AIStatus:
+        return request.app.state.ai_config.status()
+
+    @application.post("/ai/config", tags=["ai"], response_model=AIStatus)
+    def ai_set_config(
+        update: AIConfigUpdate,
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+    ) -> AIStatus:
+        """Set the OpenAI key for this running process only (kept in memory, never returned)."""
+        return request.app.state.ai_config.set_runtime(update)
+
+    @application.delete("/ai/config", tags=["ai"], response_model=AIStatus)
+    def ai_clear_config(
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+    ) -> AIStatus:
+        return request.app.state.ai_config.clear_runtime()
+
+    @application.post("/ai/employee/chat", tags=["ai"], response_model=AIAnswer)
+    def ai_employee_chat(
+        chat: EmployeeChatRequest,
+        request: Request,
+        principal: Annotated[AuthPrincipal, Depends(authenticated_principal)],
+    ) -> AIAnswer:
+        # Career AI is personal: only the employee can talk to it, only about themself.
+        if principal.role == "hr" or not principal.employee_id:
+            raise HTTPException(status_code=403, detail="Career AI is available to employees for their own profile only.")
+        store = store_from(request)
+        if principal.employee_id not in store.dataset.indexes.employees_by_id:
+            raise HTTPException(status_code=404, detail=f"Employee {principal.employee_id} not found")
+        service = EmployeeAIService(store, request.app.state.ai_config, request.app.state.llm_client)
+        return service.chat(principal.employee_id, chat)
+
+    @application.post("/ai/hr/insights", tags=["ai"], response_model=HRInsightsResponse)
+    def ai_hr_insights(
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+        language: Literal["en", "ru", "kk"] = Query(default="en"),
+    ) -> HRInsightsResponse:
+        service = HRInsightService(store_from(request), request.app.state.ai_config, request.app.state.llm_client)
+        return service.insights(language)
+
+    @application.post("/ai/hr/query", tags=["ai"], response_model=AIAnswer)
+    def ai_hr_query(
+        query: HRQueryRequest,
+        request: Request,
+        _principal: Annotated[AuthPrincipal, Depends(hr_principal)],
+    ) -> AIAnswer:
+        service = HRInsightService(store_from(request), request.app.state.ai_config, request.app.state.llm_client)
+        return service.query(query)
 
     @application.get("/career/requirements", tags=["career"])
     def career_requirements(

@@ -66,6 +66,16 @@ class DatasetLoader:
         employees = self._load_json("employees.json", EmployeesDataset)
         events = self._load_json("events.json", EventsDataset)
         history = self._load_history()
+        return self.build_bundle(skills, employees, events, history)
+
+    def build_bundle(
+        self,
+        skills: SkillsDataset,
+        employees: EmployeesDataset,
+        events: EventsDataset,
+        history: tuple[HistoryRecord, ...],
+    ) -> DatasetBundle:
+        """Validate and index an in-memory dataset using the normal loader rules."""
         warnings = self._validate_relations(skills, employees, events, history)
         indexes = self._build_indexes(skills, employees, events, history)
         return DatasetBundle(
@@ -281,4 +291,3 @@ class DatasetLoader:
             history_by_employee={key: tuple(value) for key, value in history_by_employee.items()},
             history_by_event={key: tuple(value) for key, value in history_by_event.items()},
         )
-

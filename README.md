@@ -2,7 +2,7 @@
 
 Career Quest is an explainable employee-development platform for the HackAlem AI Halyk Bank track. The product will connect career targets, skill gaps, suitable development activities, verified participation, and updated career progress.
 
-This repository currently contains the **Hour 1-3 backend foundation**: a FastAPI service, strict typed dataset models, cross-file validation, in-memory indexes, employee profiles, career-target resolution, assessed-versus-current skill progress, gap analysis, deterministic explainable recommendations, health endpoints, and automated tests. The presentation layer is intentionally not fixed yet.
+This repository currently contains the backend foundation: a FastAPI service, strict typed dataset models, cross-file validation, atomic runtime imports, live activity updates, employee profiles, career-target resolution, assessed-versus-current skill progress, gap analysis, deterministic explainable recommendations, health endpoints, and automated tests. The presentation layer is intentionally not fixed yet.
 
 ## Current architecture
 
@@ -57,6 +57,9 @@ Hour 2 endpoints:
 - `GET /employees/{employee_id}` - full profile and activity summary
 - `GET /employees/{employee_id}/progress` - career target, current progress, gaps, critical gaps, and readiness
 - `GET /employees/{employee_id}/recommendations?debug=false` - 1-3 explainable recommendations plus required events
+- `POST /employees/{employee_id}/activities` - add an activity to the plan or mark it completed and return the resulting diff
+- `POST /import` / `POST /import/dry-run` - atomically validate and merge jury-format files
+- `POST /admin/reset` - restore the original startup dataset
 - `GET /career/requirements?role=...&grade=...` - role/grade requirements
 
 Progress keeps formal assessment separate from later development:
@@ -142,6 +145,47 @@ events are annual: they are required when the employee is in the audience and ha
 no completion in the 365 days before the dataset snapshot. Required statuses are
 `due`, `in_progress`, or `overdue`, with `due_date` retained even when it is null.
 
+## Runtime imports and activity updates
+
+`DataStore` owns the live `DatasetBundle`. Every accepted import or activity
+update is validated with `DatasetLoader`, atomically swaps the bundle, and
+recreates the progress and recommendation services. No server restart is needed.
+
+The jury can import any subset of `employees.json`, `activity_history.csv`,
+`events.json`, and `skills.json`. A request containing a new employee and that
+employee's history is validated as one merged dataset, so cross-file references
+within the same upload work. Existing IDs are conflicts by default; explicitly
+use `?mode=upsert` to replace them. Invalid imports return file and row/ID errors
+without changing live state.
+
+Multipart upload:
+
+```bash
+curl --fail-with-body -X POST \
+  -F "files=@/path/to/employees.json" \
+  -F "files=@/path/to/activity_history.csv" \
+  http://127.0.0.1:8000/import
+```
+
+Use `/import/dry-run` for the same report without applying it, or use the helper:
+
+```bash
+make import DIR=/path/to/extra-data
+```
+
+For startup import, point to a directory containing any subset of those files:
+
+```bash
+CAREER_QUEST_EXTRA_DATA_DIR=/path/to/extra-data make run
+```
+
+`POST /employees/{id}/activities` accepts `completed` or `in_progress` with a
+source of `self_report`, `qr_verified`, or `hr_confirmed`. Completion updates only
+the post-review estimate, never the formal assessed level. The response includes
+changed skills, readiness before/after, and recommendation IDs before/after.
+Non-recurring duplicate completions return `409`; recurring EV_036 can repeat.
+`POST /admin/reset` restores the original four source files for repeated demos.
+
 Example health response:
 
 ```json
@@ -165,7 +209,7 @@ Example health response:
 
 ## Tests
 
-The Hour 1-3 suite verifies:
+The backend suite verifies:
 
 - the official four source files load;
 - the expected dataset counts are exposed;
@@ -184,3 +228,7 @@ The Hour 1-3 suite verifies:
 - recurring `EV_036`, lateral goals, no-suitable-action responses, and diversity;
 - structured explanations in English, Russian, and Kazakh;
 - all 200 official employees return safely with zero to three recommendations.
+- JSON and multipart jury imports, dry runs, upserts, and atomic failures;
+- startup extra-data merge and reset to the original snapshot;
+- live completion and add-to-plan recalculation without restart;
+- duplicate completion protection and recurring EV_036 behavior.

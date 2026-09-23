@@ -21,7 +21,7 @@ class FakeLLM:
         self.replies = list(replies)
         self.calls: list[list[dict[str, Any]]] = []
 
-    def complete(self, *, messages, tools, timeout):  # noqa: ANN001 - test double
+    def complete(self, *, messages, tools, timeout, max_tokens=None):  # noqa: ANN001 - test double
         self.calls.append(messages)
         reply = self.replies.pop(0)
         if isinstance(reply, Exception):

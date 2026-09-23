@@ -45,6 +45,7 @@ def append_employee(
     skills: dict[str, int] | None = None,
     last_review_date: str = "2026-09-30",
     grade: str = "Middle",
+    tenure_months: int = 36,
 ) -> dict[str, object]:
     employees_path = data_dir / "employees.json"
     payload = json.loads(employees_path.read_text(encoding="utf-8"))
@@ -60,7 +61,7 @@ def append_employee(
         "grade": grade,
         "manager_id": "E0050",
         "hire_date": "2023-10-01",
-        "tenure_months": 36,
+        "tenure_months": tenure_months,
         "work_format": "hybrid",
         "preferred_language": language,
         "career_goal": {"target_role": target_role, "target_grade": target_grade},
@@ -130,6 +131,41 @@ def test_trap_profile_prioritizes_critical_system_design(tmp_path: Path) -> None
     assert "critical" in result.recommendations[0].explanation.lower()
 
 
+def test_same_event_friction_is_counted_and_explained(tmp_path: Path) -> None:
+    data_dir = copy_dataset(tmp_path)
+    employee_id = "T_SAME_FRICTION"
+    skills = role_requirements(data_dir, "Backend Engineer", "Senior")
+    skills["SK_SYSTEM_DESIGN"] = 2
+    skills["SK_PUBLIC_SPEAKING"] = 1
+    append_employee(data_dir, employee_id, skills=skills, system_design=2)
+    append_history(
+        data_dir,
+        employee_id,
+        [
+            {"event_id": "EV_005", "status": "completed", "date": "2026-05-15"},
+            {
+                "event_id": "EV_006",
+                "status": "in_progress",
+                "completion_pct": "40",
+                "date": "2026-05-20",
+            },
+            *[
+                {"event_id": "EV_036", "status": "no_show", "date": f"2026-0{month}-15"}
+                for month in (6, 7, 8)
+            ],
+        ],
+    )
+
+    result = load_engine(data_dir).recommend(employee_id)
+    club = next(item for item in result.recommendations if item.event_id == "EV_036")
+    friction = next(factor for factor in club.factors if factor.code == "friction")
+
+    assert result.recommendations[0].event_id in {"EV_006", "EV_007"}
+    assert "3 no-show" in friction.detail
+    assert "3 time" in club.explanation
+    assert "ranked lower" in club.explanation
+
+
 def test_max_level_reached_rejects_event_that_cannot_close_gap(tmp_path: Path) -> None:
     data_dir = copy_dataset(tmp_path)
     append_employee(data_dir, "T_MAX", system_design=3)
@@ -137,6 +173,34 @@ def test_max_level_reached_rejects_event_that_cannot_close_gap(tmp_path: Path) -
     result = load_engine(data_dir).recommend("T_MAX", debug=True)
 
     assert rejected_map(result)["EV_005"] == "MAX_LEVEL_REACHED"
+
+
+def test_blocked_critical_gap_lists_every_catalog_reason(tmp_path: Path) -> None:
+    data_dir = copy_dataset(tmp_path)
+    employee_id = "T_BLOCKED"
+    skills = role_requirements(data_dir, "Backend Engineer", "Senior")
+    skills["SK_SYSTEM_DESIGN"] = 3
+    append_employee(data_dir, employee_id, skills=skills, system_design=3)
+    append_history(
+        data_dir,
+        employee_id,
+        [
+            {"event_id": "EV_006", "status": "completed"},
+            {"event_id": "EV_007", "status": "completed"},
+        ],
+    )
+
+    result = load_engine(data_dir).recommend(employee_id, debug=True)
+    blocked = next(item for item in result.blocked_gaps if item.skill_id == "SK_SYSTEM_DESIGN")
+
+    assert blocked.critical is True
+    assert (blocked.effective_level, blocked.target_level) == (3, 4)
+    assert {item.event_id: item.reason_code for item in blocked.blocking_reasons} == {
+        "EV_005": "MAX_LEVEL_REACHED",
+        "EV_006": "ALREADY_COMPLETED",
+        "EV_007": "ALREADY_COMPLETED",
+    }
+    assert "critical gap is blocked" in result.summary.lower()
 
 
 def test_prerequisites_block_advanced_events_but_fundamentals_survive(tmp_path: Path) -> None:
@@ -161,7 +225,52 @@ def test_mandatory_events_never_appear_in_recommendations(tmp_path: Path) -> Non
     assert recommendation_ids.isdisjoint({"EV_001", "EV_002", "EV_003", "EV_004"})
     rejected = rejected_map(result)
     assert all(rejected[event_id] == "MANDATORY" for event_id in ("EV_001", "EV_002", "EV_003", "EV_004"))
-    assert {item.event_id for item in result.required} == {"EV_001", "EV_002", "EV_003", "EV_004"}
+    assert {item.event_id for item in result.required} == {"EV_001", "EV_002", "EV_003"}
+
+
+def test_onboarding_is_required_only_during_first_three_months(tmp_path: Path) -> None:
+    data_dir = copy_dataset(tmp_path)
+    append_employee(data_dir, "T_NEW_HIRE", tenure_months=3)
+    append_employee(data_dir, "T_ESTABLISHED", tenure_months=4)
+    engine = load_engine(data_dir)
+
+    new_hire = engine.recommend("T_NEW_HIRE")
+    established = engine.recommend("T_ESTABLISHED")
+
+    assert "EV_004" in {item.event_id for item in new_hire.required}
+    assert "EV_004" not in {item.event_id for item in established.required}
+    assert all(item.status in {"overdue", "in_progress", "due"} for item in new_hire.required)
+
+
+def test_annual_compliance_uses_snapshot_window_and_current_status(tmp_path: Path) -> None:
+    data_dir = copy_dataset(tmp_path)
+    employee_id = "T_ANNUAL"
+    append_employee(data_dir, employee_id, tenure_months=12)
+    append_history(
+        data_dir,
+        employee_id,
+        [
+            {"event_id": "EV_001", "status": "completed", "date": "2025-09-30"},
+            {"event_id": "EV_002", "status": "completed", "date": "2025-10-01"},
+            {
+                "event_id": "EV_003",
+                "status": "in_progress",
+                "completion_pct": "50",
+                "date": "2026-09-01",
+                "due_date": "2026-10-15",
+                "assigned_by": "hr",
+            },
+        ],
+    )
+
+    required = {
+        item.event_id: item for item in load_engine(data_dir).recommend(employee_id).required
+    }
+
+    assert required["EV_001"].status == "due"
+    assert "EV_002" not in required
+    assert required["EV_003"].status == "in_progress"
+    assert required["EV_003"].due_date.isoformat() == "2026-10-15"
 
 
 def test_completed_event_is_excluded_but_recurring_club_can_repeat(tmp_path: Path) -> None:
@@ -293,6 +402,61 @@ def test_explanations_are_localized_and_have_three_factors(
         assert "деңгей" in result.recommendations[0].explanation
     else:
         assert "level" in result.recommendations[0].explanation
+    banned = (
+        ">=",
+        "{",
+        "cap",
+        "MANDATORY",
+        "AUDIENCE",
+        "ALREADY_COMPLETED",
+        "IN_PROGRESS",
+        "PREREQUISITES",
+        "NO_RELEVANT_GAP",
+        "MAX_LEVEL_REACHED",
+        "NOT_AVAILABLE",
+    )
+    assert all(
+        token not in recommendation.explanation
+        for recommendation in result.recommendations
+        for token in banned
+    )
+
+
+def test_self_paced_next_session_and_required_due_date_keep_nulls(tmp_path: Path) -> None:
+    data_dir = copy_dataset(tmp_path)
+    append_employee(data_dir, "T_NULL_FIELDS")
+
+    with TestClient(create_app(data_dir)) as client:
+        response = client.get("/employees/T_NULL_FIELDS/recommendations")
+        real_response = client.get("/employees/E0028/recommendations")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert "rejected" not in payload
+    assert payload["required"]
+    assert all("due_date" in item for item in payload["required"])
+    assert any(item["due_date"] is None for item in payload["required"])
+    self_paced = [
+        item for item in real_response.json()["recommendations"] if item["format"] == "self_paced"
+    ]
+    assert self_paced
+    assert all(item["next_session"] is None for item in self_paced)
+
+
+def test_readiness_percentage_exposes_consistent_math(tmp_path: Path) -> None:
+    data_dir = copy_dataset(tmp_path)
+    append_employee(data_dir, "T_READINESS", system_design=2)
+
+    progress = load_engine(data_dir).progress_service.calculate("T_READINESS")
+    readiness = progress.readiness
+    numerator = sum(item.credited_level for item in readiness.contributions)
+    denominator = sum(item.target_level for item in readiness.contributions)
+
+    assert readiness.readiness_pct == round(100 * numerator / denominator)
+    assert readiness.readiness_pct >= round(
+        100 * readiness.requirements_met / readiness.requirements_total
+    )
+    assert "effective_level" in readiness.formula
 
 
 def test_all_official_employees_return_zero_to_three_recommendations() -> None:

@@ -115,7 +115,7 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
         "/employees/{employee_id}/recommendations",
         tags=["employees"],
         response_model=EmployeeRecommendations,
-        response_model_exclude_none=True,
+        response_model_exclude_unset=True,
     )
     def employee_recommendations(
         employee_id: str,

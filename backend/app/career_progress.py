@@ -32,12 +32,23 @@ class SkillProgress(BaseModel):
     evidence_event_ids: list[str]
 
 
+class ReadinessContribution(BaseModel):
+    skill_id: str
+    name: str
+    effective_level: int
+    target_level: int
+    credited_level: int
+
+
 class CareerReadiness(BaseModel):
     status: Literal["ready", "developing", "critical_gaps", "grade_ceiling"]
     requirements_met: int
     requirements_total: int
     critical_requirements_met: int
     critical_requirements_total: int
+    readiness_pct: int
+    formula: str
+    contributions: list[ReadinessContribution]
 
 
 class EmployeeProgress(BaseModel):
@@ -139,6 +150,15 @@ class SkillProgressService:
         gaps = [item for item in target_skills if item.gap > 0]
         critical_gaps = [item for item in gaps if item.critical]
         critical_skills = [item for item in target_skills if item.critical]
+        readiness_denominator = sum(item.target_level for item in target_skills)
+        readiness_numerator = sum(
+            min(item.effective_level, item.target_level) for item in target_skills
+        )
+        readiness_pct = (
+            round(100 * readiness_numerator / readiness_denominator)
+            if readiness_denominator
+            else 100
+        )
 
         if target.source == "current_grade_ceiling":
             status: Literal["ready", "developing", "critical_gaps", "grade_ceiling"] = "grade_ceiling"
@@ -159,10 +179,24 @@ class SkillProgressService:
                 requirements_total=len(target_skills),
                 critical_requirements_met=len(critical_skills) - len(critical_gaps),
                 critical_requirements_total=len(critical_skills),
+                readiness_pct=readiness_pct,
+                formula=(
+                    "round(100 × Σ min(effective_level, target_level) "
+                    "/ Σ target_level)"
+                ),
+                contributions=[
+                    ReadinessContribution(
+                        skill_id=item.skill_id,
+                        name=item.name,
+                        effective_level=item.effective_level,
+                        target_level=item.target_level,
+                        credited_level=min(item.effective_level, item.target_level),
+                    )
+                    for item in target_skills
+                ],
             ),
             skills=progress,
             gaps=gaps,
             critical_gaps=critical_gaps,
             completed_after_review=completed_after_review,
         )
-

@@ -68,6 +68,15 @@ gap = max(target_level - effective_level, 0)
 
 Each post-review gain includes its supporting event IDs. Activity progress is
 shown as development evidence and is not represented as a new formal assessment.
+Readiness is calculated across every target skill:
+
+```text
+readiness_pct = round(100 × Σ min(effective_level, target_level) / Σ target_level)
+```
+
+The progress response includes this formula and each skill's credited and target
+levels. `requirements_met / requirements_total` remains a separate count of skills
+that fully meet their target; partial skill progress contributes only to readiness.
 
 ## Recommendation logic
 
@@ -89,6 +98,12 @@ With `debug=true`, every rejected event includes its first decisive reason:
 `NO_RELEVANT_GAP`, `MAX_LEVEL_REACHED`, or `NOT_AVAILABLE`. If no event survives,
 the response is `NO_SUITABLE_ACTION` and includes the unclosed gaps.
 
+Every unclosed gap that no eligible catalog event can improve appears in
+`blocked_gaps`, critical gaps first. Each entry lists the event-level blocking
+reason and a supportive suggestion for on-the-job practice or mentoring. The
+top-level localized `summary` explicitly warns when a critical gap is blocked,
+even if recommendations for other skills are available.
+
 Eligible events use the centralized weights in `SCORING_WEIGHTS`:
 
 | Factor | Weight |
@@ -100,21 +115,32 @@ Eligible events use the centralized weights in `SCORING_WEIGHTS`:
 | Similar scheduled no-show friction | -1.25, with a 1.5× scheduled multiplier |
 | Similar dropped-event friction | -1.00, with a 1.5× long-event multiplier |
 | Similar declined-event friction | -0.75 |
+| Same-event friction | 1.5× the applicable friction penalty |
 | Remote employee with an offline event | -0.75 |
 | Effort | -0.04 per hour |
 | New-gap diversity while selecting recommendations 2-3 | +1.00 per new gap |
 
 For positive evidence, similar means the same type, the same format, or a shared
 developed skill. For friction, similar means a shared developed skill or the same
-type-and-format pair, and the same `event_id` is deliberately excluded. No-show
-friction weighs more for scheduled activities; dropped history weighs more for
-long activities.
+type-and-format pair. Records for the exact same event are also counted and receive
+a 1.5× penalty, because repeated friction with that activity is especially useful
+evidence. No-show friction weighs more for scheduled activities; dropped history
+weighs more for long activities.
 
 The engine greedily selects up to three events and rewards coverage of different
 gaps. Scores map to labels without probabilities: `Strong match` at 12 or above,
 `Good match` at 5 or above, and `Exploratory` below 5. Every result contains
 structured numerical factors, expected skill effects, and an English, Russian,
-or Kazakh template explanation based on the employee's preferred language.
+or Kazakh template explanation based on the employee's preferred language. The
+explanation always covers the current grade and target, the numbered skill gap,
+the estimated effect, participation history, effort, localized format, and next
+session without exposing internal scoring syntax.
+
+Mandatory events never compete with personal recommendations. Onboarding is
+required only during an employee's first three months. Other mandatory compliance
+events are annual: they are required when the employee is in the audience and has
+no completion in the 365 days before the dataset snapshot. Required statuses are
+`due`, `in_progress`, or `overdue`, with `due_date` retained even when it is null.
 
 Example health response:
 

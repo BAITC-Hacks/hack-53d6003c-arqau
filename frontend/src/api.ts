@@ -36,7 +36,7 @@ export interface Recommendations {
 export interface Journey { employee_id:string; message:string; progress_since_review:Array<{skill_id:string;name:string;assessed_level:number;effective_level:number;gain:number;evidence_event_ids:string[]}>; monthly_activity:Array<{month:string;records:number;completed:number;in_progress:number;friction:number}> }
 export interface ActivityDiff { record_id:string; event_id:string; status:string; skills_changed:Array<{skill_id:string;name:string;from_level:number;to_level:number}>; readiness:{from:number;to:number}; recommendations_before:string[]; recommendations_after:string[]; progress_note:string }
 
-const API = import.meta.env.VITE_API_URL || '/api'
+const API = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : '')
 
 export async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
   const headers = new Headers(options.headers)

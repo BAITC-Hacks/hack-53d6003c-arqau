@@ -1,0 +1,12 @@
+services:
+  career-quest:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      CAREER_QUEST_SECRET: ${CAREER_QUEST_SECRET:-career-quest-local-demo-secret}
+      CAREER_QUEST_DATA_DIR: /app/dataset
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+    volumes:
+      - ${CAREER_QUEST_DATA_DIR:-./dataset}:/app/dataset:ro

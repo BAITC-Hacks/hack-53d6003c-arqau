@@ -10,6 +10,7 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from .career_progress import SkillProgressService
 from .data_loader import DatasetBundle, DatasetLoader
 from .models import Grade
+from .recommendations import EmployeeRecommendations, RecommendationEngine
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -35,6 +36,7 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
         app.state.dataset = DatasetLoader(source_dir).load()
         for warning in app.state.dataset.warnings:
             logger.warning("Dataset warning: %s", warning)
+        app.state.recommendations = RecommendationEngine(app.state.dataset)
         yield
 
     application = FastAPI(
@@ -108,6 +110,23 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
         if employee_id not in dataset.indexes.employees_by_id:
             raise HTTPException(status_code=404, detail=f"Employee {employee_id} not found")
         return SkillProgressService(dataset).calculate(employee_id).model_dump(mode="json")
+
+    @application.get(
+        "/employees/{employee_id}/recommendations",
+        tags=["employees"],
+        response_model=EmployeeRecommendations,
+        response_model_exclude_none=True,
+    )
+    def employee_recommendations(
+        employee_id: str,
+        request: Request,
+        debug: bool = Query(default=False),
+    ) -> EmployeeRecommendations:
+        dataset: DatasetBundle = request.app.state.dataset
+        if employee_id not in dataset.indexes.employees_by_id:
+            raise HTTPException(status_code=404, detail=f"Employee {employee_id} not found")
+        engine: RecommendationEngine = request.app.state.recommendations
+        return engine.recommend(employee_id, debug=debug)
 
     @application.get("/career/requirements", tags=["career"])
     def career_requirements(

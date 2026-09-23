@@ -15,6 +15,11 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SOURCE_DATA = PROJECT_ROOT / "dataset"
 
 
+def authorize_hr(client: TestClient) -> None:
+    token = client.post("/auth/demo-login", json={"role": "hr"}).json()["access_token"]
+    client.headers["Authorization"] = f"Bearer {token}"
+
+
 def copy_dataset(tmp_path: Path) -> Path:
     destination = tmp_path / "dataset"
     shutil.copytree(SOURCE_DATA, destination)
@@ -57,6 +62,7 @@ def test_import_employee_and_history_together_then_recommend(tmp_path: Path) -> 
     data_dir = copy_dataset(tmp_path)
     employee_id = "JURY_JSON"
     with TestClient(create_app(data_dir)) as client:
+        authorize_hr(client)
         response = client.post(
             "/import",
             json={
@@ -83,6 +89,7 @@ def test_multipart_import_and_dry_run_do_not_require_restart(tmp_path: Path) -> 
         ("files", ("activity_history.csv", history_bytes, "text/csv")),
     ]
     with TestClient(create_app(data_dir)) as client:
+        authorize_hr(client)
         dry_run = client.post("/import/dry-run", files=files)
         absent_after_dry_run = client.get(f"/employees/{employee_id}")
         applied = client.post("/import", files=files)
@@ -99,6 +106,7 @@ def test_unknown_event_import_fails_atomically_with_record_error(tmp_path: Path)
     data_dir = copy_dataset(tmp_path)
     employee_id = "JURY_BAD_EVENT"
     with TestClient(create_app(data_dir)) as client:
+        authorize_hr(client)
         before = client.get("/health").json()["dataset"]["counts"]
         response = client.post(
             "/import",
@@ -124,6 +132,7 @@ def test_duplicate_requires_upsert_and_conflict_changes_nothing(tmp_path: Path) 
     duplicate = employee_document("E0028")
     duplicate["employees"][0]["preferred_language"] = "en"
     with TestClient(create_app(data_dir)) as client:
+        authorize_hr(client)
         conflict = client.post("/import", json={"employees": duplicate})
         unchanged = client.get("/employees/E0028").json()
         upsert = client.post("/import?mode=upsert", json={"employees": duplicate})
@@ -140,6 +149,7 @@ def test_completion_recalculates_progress_and_recommendations(tmp_path: Path) ->
     data_dir = copy_dataset(tmp_path)
     employee_id = "E0028"
     with TestClient(create_app(data_dir)) as client:
+        authorize_hr(client)
         before_progress = client.get(f"/employees/{employee_id}/progress").json()
         before_recommendations = client.get(
             f"/employees/{employee_id}/recommendations"
@@ -152,7 +162,7 @@ def test_completion_recalculates_progress_and_recommendations(tmp_path: Path) ->
                 "status": "completed",
                 "score": 92,
                 "feedback_rating": 5,
-                "source": "self_report",
+                "source": "hr_confirmed",
             },
         )
         after_progress = client.get(f"/employees/{employee_id}/progress").json()
@@ -176,6 +186,7 @@ def test_add_to_plan_removes_event_without_changing_skills(tmp_path: Path) -> No
     data_dir = copy_dataset(tmp_path)
     employee_id = "E0028"
     with TestClient(create_app(data_dir)) as client:
+        authorize_hr(client)
         recommendation = client.get(
             f"/employees/{employee_id}/recommendations"
         ).json()["recommendations"][0]
@@ -184,7 +195,7 @@ def test_add_to_plan_removes_event_without_changing_skills(tmp_path: Path) -> No
             json={
                 "event_id": recommendation["event_id"],
                 "status": "in_progress",
-                "source": "self_report",
+                "source": "hr_confirmed",
             },
         )
 
@@ -197,16 +208,17 @@ def test_add_to_plan_removes_event_without_changing_skills(tmp_path: Path) -> No
 def test_non_recurring_completion_conflicts_but_ev036_can_repeat(tmp_path: Path) -> None:
     data_dir = copy_dataset(tmp_path)
     with TestClient(create_app(data_dir)) as client:
+        authorize_hr(client)
         event_id = client.get("/employees/E0028/recommendations").json()["recommendations"][0][
             "event_id"
         ]
-        payload = {"event_id": event_id, "status": "completed", "source": "self_report"}
+        payload = {"event_id": event_id, "status": "completed", "source": "hr_confirmed"}
         first = client.post("/employees/E0028/activities", json=payload)
         duplicate = client.post("/employees/E0028/activities", json=payload)
         recurring_payload = {
             "event_id": "EV_036",
             "status": "completed",
-            "source": "self_report",
+            "source": "hr_confirmed",
         }
         recurring_first = client.post("/employees/E0051/activities", json=recurring_payload)
         recurring_second = client.post("/employees/E0051/activities", json=recurring_payload)
@@ -222,6 +234,7 @@ def test_reset_restores_original_counts_and_profiles(tmp_path: Path) -> None:
     data_dir = copy_dataset(tmp_path)
     employee_id = "JURY_RESET"
     with TestClient(create_app(data_dir)) as client:
+        authorize_hr(client)
         original = client.get("/health").json()["dataset"]["counts"]
         imported = client.post(
             "/import", json={"employees": employee_document(employee_id)}
@@ -251,6 +264,7 @@ def test_startup_extra_data_directory_is_merged_and_resettable(
     monkeypatch.setenv("CAREER_QUEST_EXTRA_DATA_DIR", str(extra_dir))
 
     with TestClient(create_app(data_dir)) as client:
+        authorize_hr(client)
         loaded = client.get(f"/employees/{employee_id}")
         reset = client.post("/admin/reset")
         removed = client.get(f"/employees/{employee_id}")

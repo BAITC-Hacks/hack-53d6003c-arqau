@@ -60,6 +60,9 @@ Hour 2 endpoints:
 - `POST /employees/{employee_id}/activities` - add an activity to the plan or mark it completed and return the resulting diff
 - `POST /import` / `POST /import/dry-run` - atomically validate and merge jury-format files
 - `POST /admin/reset` - restore the original startup dataset
+- `POST /auth/demo-login` - issue a signed employee or HR demo token
+- `GET /auth/demo-employees` - public synthetic-identity picker for demo login
+- `GET /hr/status` - minimal HR-only access check (analytics arrive in the next step)
 - `GET /career/requirements?role=...&grade=...` - role/grade requirements
 
 Progress keeps formal assessment separate from later development:
@@ -186,6 +189,38 @@ changed skills, readiness before/after, and recommendation IDs before/after.
 Non-recurring duplicate completions return `409`; recurring EV_036 can repeat.
 `POST /admin/reset` restores the original four source files for repeated demos.
 
+## Roles and permissions
+
+All employee, runtime, career, admin, and HR endpoints require a Bearer token;
+`GET /health`, `POST /auth/demo-login`, and the synthetic demo employee picker
+remain public. Tokens are compact JSON payloads signed with HMAC-SHA256. Set a
+stable secret before starting the API:
+
+```bash
+CAREER_QUEST_SECRET='replace-with-a-long-random-secret' make run
+```
+
+When the variable is omitted, the server generates an ephemeral secret at
+startup, so tokens stop working after a restart. The secret is never returned by
+the API.
+
+Employee login:
+
+```bash
+curl -X POST http://127.0.0.1:8000/auth/demo-login \
+  -H 'Content-Type: application/json' \
+  -d '{"role":"employee","employee_id":"E0028"}'
+```
+
+HR login uses `{"role":"hr"}`. Send the returned token as
+`Authorization: Bearer <access_token>`. Employee tokens can read and update only
+their own `/employees/{id}/*` resources and can submit only `self_report`
+activities. They cannot list the employee directory or access `/hr/*`, `/import`,
+or `/admin/*`. HR tokens can read any employee and access the HR, import, and
+administrative routes. Current HR responses contain structured employee and
+activity data only; private Career AI chat and self-reported capacity are not
+part of any HR response.
+
 Example health response:
 
 ```json
@@ -232,3 +267,5 @@ The backend suite verifies:
 - startup extra-data merge and reset to the original snapshot;
 - live completion and add-to-plan recalculation without restart;
 - duplicate completion protection and recurring EV_036 behavior.
+- public health plus HMAC token validation and clear 401/403 responses;
+- employee self-only access and HR-only directory, import, admin, and HR routes.
